@@ -3,7 +3,7 @@
 # Group information
 * Student 1. Hasaan Ahmed (hasaan.ahmed@student.oulu.fi)
 * Student 2. Aqib Ilyas (aqib.ilyas@student.oulu.fi)
-* Student 3. Name and email
+* Student 3. Muhammad Hassan Sulatn (hassan.sultan@student.oulu.fi)
 * Student 4. Name and email
 
 
