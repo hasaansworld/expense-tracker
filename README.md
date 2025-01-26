@@ -1,8 +1,8 @@
 # PWP SPRING 2025
-# PROJECT NAME
+# Expense Tracker API
 # Group information
-* Student 1. Name and email
-* Student 2. Name and email
+* Student 1. Hasaan Ahmed (hasaan.ahmed@student.oulu.fi)
+* Student 2. Aqib Ilyas (aqib.ilyas@student.oulu.fi)
 * Student 3. Name and email
 * Student 4. Name and email
 
