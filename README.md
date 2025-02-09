@@ -8,8 +8,8 @@ A Flask based expense tracking API that helps users manage shared expenses withi
 
 - Student 1. Hasaan Ahmed (hasaan.ahmed@student.oulu.fi)
 - Student 2. Aqib Ilyas (aqib.ilyas@student.oulu.fi)
-- Student 3. Muhammad Hassan Sulatn (hassan.sultan@student.oulu.fi)
-- Student 4. Name and email
+- Student 3. Muhammad Hassan Sultan (hassan.sultan@student.oulu.fi)
+- Student 4. Hassan Abudllah
 
 ## Dependencies
 
