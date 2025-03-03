@@ -1,5 +1,5 @@
 from flask import Flask
-from models import db, User, Group, GroupMember, Expense, ExpenseParticipant, Balance, Payment
+from app.models import db, User, Group, GroupMember, Expense, ExpenseParticipant
 from werkzeug.security import generate_password_hash
 
 def create_app():
@@ -47,6 +47,9 @@ def populate_db():
         GroupMember(user_id=user.id, group_id=group.id)
         for user in users
     ]
+    # Make the first user an admin
+    members[0].role = 'admin'
+    
     for member in members:
         db.session.add(member)
     db.session.commit()
@@ -57,8 +60,7 @@ def populate_db():
         created_by=users[0].id,
         amount=150.00,
         description='Groceries',
-        category='Food',
-        expense_type='regular'
+        category='Food'
     )
     db.session.add(expense)
     db.session.commit()
@@ -86,37 +88,6 @@ def populate_db():
     ]
     for participant in participants:
         db.session.add(participant)
-    db.session.commit()
-
-    # Create balances
-    balances = [
-        Balance(
-            group_id=group.id,
-            user_id=users[1].id,
-            owed_to=users[0].id,
-            amount=50.00
-        ),
-        Balance(
-            group_id=group.id,
-            user_id=users[2].id,
-            owed_to=users[0].id,
-            amount=50.00
-        )
-    ]
-    for balance in balances:
-        db.session.add(balance)
-    db.session.commit()
-
-    # Create a payment
-    payment = Payment(
-        group_id=group.id,
-        payer_id=users[1].id,
-        receiver_id=users[0].id,
-        amount=50.00,
-        payment_method='card',
-        status='completed'
-    )
-    db.session.add(payment)
     db.session.commit()
 
 if __name__ == '__main__':
