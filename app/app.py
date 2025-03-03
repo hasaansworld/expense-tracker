@@ -78,6 +78,16 @@ app.url_map.converters['group'] = GroupConverter
 app.url_map.converters['expense'] = ExpenseConverter
 
 # Resource Classes
+user_required_fields = {
+    "type": "object",
+    "required": ["name", "email", "password_hash"],
+    "properties": {
+        "name": {"type": "string"},
+        "email": {"type": "string", "format": "email"},
+        "password_hash": {"type": "string"}
+    }
+}
+
 class UserCollection(Resource):
     """Resource for collection of User objects"""
     
@@ -92,6 +102,12 @@ class UserCollection(Resource):
         if not request.json:
             raise UnsupportedMediaType("Request must be JSON")
         
+        # Validate required fields
+        try:
+            validate(instance=request.json, schema=user_required_fields, format_checker=draft7_format_checker)
+        except ValidationError as e:
+            raise BadRequest(f"Validation error: {e.message}")
+    
         existing_user = User.query.filter_by(email=request.json["email"]).first()
         if existing_user:
             raise Conflict(f"User with email {request.json['email']} already exists")
@@ -164,6 +180,14 @@ class UserItem(Resource):
         
         return "", 204
 
+group_required_fields = {
+    "type": "object",
+    "required": ["name"],
+    "properties": {
+        "name": {"type": "string"}
+    }
+}
+
 class GroupCollection(Resource):
     """Resource for collection of Group objects"""
     
@@ -179,6 +203,12 @@ class GroupCollection(Resource):
         if not request.json:
             raise UnsupportedMediaType("Request must be JSON")
         
+        # Validate required fields
+        try:
+            validate(instance=request.json, schema=group_required_fields)
+        except ValidationError as e:
+            raise BadRequest(f"Validation error: {e.message}")
+    
         # Create new group
         group = Group(created_by=g.user_id)
         group.deserialize(request.json)
@@ -324,6 +354,16 @@ class GroupMemberItem(Resource):
         
         return "", 204
 
+
+expense_required_fields = {
+    "type": "object",
+    "required": ["amount", "description"],
+    "properties": {
+        "amount": {"type": "number", "minimum": 0},
+        "description": {"type": "string"}
+    }
+}
+
 class ExpenseCollection(Resource):
     """Resource for collection of Expense objects in a group"""
     
@@ -344,6 +384,12 @@ class ExpenseCollection(Resource):
         if not request.json:
             raise UnsupportedMediaType("Request must be JSON")
         
+        # Validate required fields
+        try:
+            validate(instance=request.json, schema=expense_required_fields)
+        except ValidationError as e:
+            raise BadRequest(f"Validation error: {e.message}")
+    
         # Create new expense
         expense = Expense(created_by=g.user_id, group_id=group.id)
         expense.deserialize(request.json)
@@ -396,6 +442,16 @@ class ExpenseCollection(Resource):
         
         return {"expense": expense.serialize()}, 201
 
+
+expense_participant_required_fields = {
+    "type": "object",
+    "required": ["user_id", "share"],
+    "properties": {
+        "user_id": {"type": "string"},
+        "share": {"type": "number", "minimum": 0}
+    }
+}
+
 class ExpenseItem(Resource):
     """Resource for individual Expense objects"""
     
@@ -414,6 +470,23 @@ class ExpenseItem(Resource):
         if not request.json:
             raise UnsupportedMediaType("Request must be JSON")
         
+        # Validate fields if amount or description are being updated
+        if "amount" in request.json or "description" in request.json:
+            # Create a schema for partial updates
+            update_schema = {
+                "type": "object",
+                "properties": {
+                    "amount": {"type": "number", "minimum": 0},
+                    "description": {"type": "string"}
+                }
+            }
+            
+            try:
+                validate(instance=request.json, schema=update_schema)
+            except ValidationError as e:
+                raise BadRequest(f"Validation error: {e.message}")
+    
+    
         # Update expense
         expense.deserialize(request.json)
         
@@ -424,6 +497,12 @@ class ExpenseItem(Resource):
             
             total_share = 0
             for participant_data in request.json["participants"]:
+                try:
+                    validate(instance=participant_data, schema=expense_participant_required_fields)
+                except ValidationError as e:
+                    db.session.rollback()
+                    raise BadRequest(f"Participant validation error: {e.message}")
+        
                 # Check if user exists and is member of the group
                 user_uuid = participant_data["user_id"]
                 participant_user = User.query.filter_by(uuid=user_uuid).first()
