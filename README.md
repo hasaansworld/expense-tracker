@@ -17,27 +17,6 @@ A Flask-based expense tracking API that helps users manage shared expenses withi
 - Expense tracking with participant shares
 - API for creating, updating, and querying expenses
 
-## Dependencies
-
-The project requires the following Python packages:
-
-```
-Flask==2.0.1
-Flask-RESTful==0.3.9
-Flask-SQLAlchemy==2.5.1
-Flask-Caching==1.10.1
-SQLAlchemy==1.4.23
-Werkzeug==2.0.1
-jsonschema==4.4.0
-pytest==7.0.0
-```
-
-You can install all dependencies using:
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Database
 
 The project uses SQLite as the database. The database file will be created as `expense_tracker.db` in the project root directory when you run the application or population script.
