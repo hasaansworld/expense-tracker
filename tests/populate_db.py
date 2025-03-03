@@ -1,10 +1,13 @@
+import os
 from flask import Flask
 from app.models import db, User, Group, GroupMember, Expense, ExpenseParticipant
 from werkzeug.security import generate_password_hash
 
 def create_app():
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    db_path = os.path.join(project_root, 'expense_tracker.db')
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///expense_tracker.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     return app

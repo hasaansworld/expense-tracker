@@ -1,14 +1,20 @@
+import os
 from flask import Flask, request, Response, g
 from flask_restful import Api, Resource
 from flask_caching import Cache
-from jsonschema import validate, ValidationError, draft7_format_checker
+from jsonschema import validate, ValidationError
 from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMediaType, Forbidden
 from werkzeug.routing import BaseConverter
 import secrets
 from app.models import db, User, ApiKey, Group, GroupMember, Expense, ExpenseParticipant
 
+# Get the project root directory
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Create the full path for the database file
+db_path = os.path.join(project_root, 'expense_tracker.db')
+
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///expense_tracker.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["CACHE_TYPE"] = "SimpleCache"
 app.config["CACHE_DEFAULT_TIMEOUT"] = 300
@@ -104,7 +110,7 @@ class UserCollection(Resource):
         
         # Validate required fields
         try:
-            validate(instance=request.json, schema=user_required_fields, format_checker=draft7_format_checker)
+            validate(instance=request.json, schema=user_required_fields)
         except ValidationError as e:
             raise BadRequest(f"Validation error: {e.message}")
     
