@@ -2,9 +2,6 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
-from models import init_db_command
-from api import api_bp
-from expenses.utils import UserConverter, GroupConverter, ExpenseConverter
 from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMediaType, Forbidden
 
 
@@ -34,6 +31,10 @@ def create_app(test_config=None):
     db.init_app(app)
     cache.init_app(app)
 
+    from .models import init_db_command
+    from .api import api_bp
+    from .utils import UserConverter, GroupConverter, ExpenseConverter
+
     app.cli.add_command(init_db_command)
 
     # Register URL converters
@@ -43,22 +44,6 @@ def create_app(test_config=None):
 
     app.register_blueprint(api_bp)
 
-    # Return errors in json
-    def handle_not_found(error):
-        return {"message": str(error)}, 404
-
-    def handle_bad_request(error):
-        return {"message": str(error)}, 400
-
-    def handle_unsupported_media_type(error):
-        return {"message": str(error)}, 415
-
-    def handle_conflict(error):
-        return {"message": str(error)}, 409
-
-    def handle_forbidden(error):
-        return {"message": str(error)}, 403
-
     api_bp.errorhandler(NotFound)(handle_not_found)
     api_bp.errorhandler(BadRequest)(handle_bad_request)
     api_bp.errorhandler(UnsupportedMediaType)(handle_unsupported_media_type)
@@ -66,3 +51,20 @@ def create_app(test_config=None):
     api_bp.errorhandler(Forbidden)(handle_forbidden)
 
     return app
+
+
+# json error handlers
+def handle_not_found(error):
+    return {"message": str(error)}, 404
+
+def handle_bad_request(error):
+    return {"message": str(error)}, 400
+
+def handle_unsupported_media_type(error):
+    return {"message": str(error)}, 415
+
+def handle_conflict(error):
+    return {"message": str(error)}, 409
+
+def handle_forbidden(error):
+    return {"message": str(error)}, 403
