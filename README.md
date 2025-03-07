@@ -1,4 +1,5 @@
 # PWP SPRING 2025
+
 # Expense Tracker API
 
 A Flask-based expense tracking API that helps users manage shared expenses within groups.
@@ -19,19 +20,25 @@ A Flask-based expense tracking API that helps users manage shared expenses withi
 
 ## Database
 
-The project uses SQLite as the database. The database file will be created as `expense_tracker.db` in the project root directory when you run the application or population script.
+The project uses SQLite as the database. The database file will be created in the Flask instance folder when you run the application or initialization commands.
 
 ## Project Structure
 
 ```
 expense-tracker/
-├── app/
-│   ├── models.py    # Database models
-│   ├── app.py       # API endpoints and routes
+├── expenses/
+│   ├── resources/
+│   │   ├── expense.py        # Expense resource
+│   │   ├── group_member.py   # Group member resource
+│   │   ├── group.py          # Group resource
+│   │   ├── user.py           # User resource
+│   ├── __init__.py           # Application factory
+│   ├── api.py                # API routes
+│   ├── models.py             # Database models
+│   ├── utils.py              # Utility classes and functions
 ├── tests/
-│   ├── test_models.py  # Unit tests for models
-│   ├── test_app.py     # Functional tests for API
-│   ├── populate_db.py  # Script to populate test data
+│   ├── api_test.py           # Tests for API
+│   ├── db_test.py            # Tests for models
 ├── requirements.txt
 └── README.md
 ```
@@ -58,15 +65,26 @@ source venv/bin/activate  # On Windows use: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create and populate the database:
+4. Initialize the database:
 
 ```bash
-python -m tests.populate_db
+export FLASK_APP=expenses
+flask init-db
 ```
 
-This will create the database with sample data including:
+On Windows, use `set FLASK_APP=expenses` instead of `export`.
+
+5. (Optional) Generate test data:
+
+```bash
+export FLASK_APP=expenses
+flask testgen
+```
+
+This will create sample data including:
+
 - Three users (John, Jane, and Bob)
-- A group called "Roommates"
+- A "Roommates" group
 - A sample expense for groceries
 - Sample balances between users
 
@@ -75,16 +93,25 @@ This will create the database with sample data including:
 To start the application:
 
 ```bash
-python -m app.app
+export FLASK_APP=expenses
+export FLASK_DEBUG=1  # Optional: for development mode
+flask run
 ```
 
-The API server will start on `http://localhost:5000/` by default.
+On Windows:
+
+```bash
+set FLASK_APP=expenses
+set FLASK_DEBUG=1  # Optional: for development mode
+flask run
+```
 
 ## API Endpoints
 
 The API provides the following endpoints:
 
 ### User Endpoints
+
 - `GET /api/users/` - Get all users
 - `POST /api/users/` - Create a new user
 - `GET /api/users/<user_id>` - Get a specific user
@@ -92,6 +119,7 @@ The API provides the following endpoints:
 - `DELETE /api/users/<user_id>` - Delete a user
 
 ### Group Endpoints
+
 - `GET /api/groups/` - Get all groups
 - `POST /api/groups/` - Create a new group
 - `GET /api/groups/<group_id>` - Get a specific group
@@ -99,11 +127,13 @@ The API provides the following endpoints:
 - `DELETE /api/groups/<group_id>` - Delete a group
 
 ### Group Member Endpoints
+
 - `GET /api/groups/<group_id>/members/` - Get all members of a group
 - `POST /api/groups/<group_id>/members/` - Add a member to a group
 - `DELETE /api/groups/<group_id>/members/<user_id>` - Remove a member from a group
 
 ### Expense Endpoints
+
 - `GET /api/groups/<group_id>/expenses/` - Get all expenses in a group
 - `POST /api/groups/<group_id>/expenses/` - Create a new expense in a group
 - `GET /api/expenses/<expense_id>` - Get a specific expense
@@ -111,6 +141,7 @@ The API provides the following endpoints:
 - `DELETE /api/expenses/<expense_id>` - Delete an expense
 
 ### Expense Participant Endpoints
+
 - `GET /api/expenses/<expense_id>/participants/` - Get all participants in an expense
 
 ## Authentication
@@ -118,6 +149,7 @@ The API provides the following endpoints:
 The API uses API keys for authentication. When creating a user, you'll receive an API key that should be included in the `X-API-Key` header for authenticated requests.
 
 Example:
+
 ```bash
 curl -X POST \
   http://localhost:5000/api/groups/ \
@@ -128,41 +160,46 @@ curl -X POST \
 
 ## Testing
 
-The project includes both model tests and API integration tests.
-
-### Model Tests
-
-To run the model tests:
+The project includes both database tests and API resources' tests.
 
 ```bash
-python -m tests.test_models
+python -m pytest
+```
+
+### Database Tests
+
+To run the db tests:
+
+```bash
+python -m pytest tests/db_test.py
 ```
 
 These tests verify:
+
 - Model creation
 - Relationships between models
 - Data integrity
 
 ### API Tests
 
-To run the API integration tests:
+To run the API resources' tests:
 
 ```bash
-python -m tests.test_app
+python -m pytest tests/api_test.py
 ```
 
 For more concise output with less traceback information:
 
 ```bash
-python -m tests.test_app -v --no-header --tb=line
+python -m pytest tests/api_test.py -v --no-header --tb=line
 ```
 
 The API tests verify:
+
 - Endpoint functionality
 - Authentication requirements
 - Error handling
 - Data validation
-
 
 ## License
 
