@@ -1,14 +1,33 @@
+"""
+Expense tracking application module.
+
+This module initializes the Flask application with database,
+caching, and API routing configurations.
+"""
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMediaType, Forbidden
 
+# Import these at the top level to avoid import-outside-toplevel warnings
+from expenses.models import init_db_command
+from expenses.api import api_bp
+from expenses.utils import UserConverter, GroupConverter, ExpenseConverter
 
 db = SQLAlchemy()
 cache = Cache()
 
 def create_app(test_config=None):
+    """
+    Create and configure the Flask application.
+    
+    Args:
+        test_config (dict, optional): Test configuration to override default settings.
+        
+    Returns:
+        Flask: Configured Flask application instance.
+    """
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY="dev",
@@ -31,10 +50,6 @@ def create_app(test_config=None):
     db.init_app(app)
     cache.init_app(app)
 
-    from .models import init_db_command
-    from .api import api_bp
-    from .utils import UserConverter, GroupConverter, ExpenseConverter
-
     app.cli.add_command(init_db_command)
 
     # Register URL converters
@@ -55,16 +70,61 @@ def create_app(test_config=None):
 
 # json error handlers
 def handle_not_found(error):
+    """
+    Handle 404 Not Found errors by returning JSON response.
+    
+    Args:
+        error: The exception object raised.
+        
+    Returns:
+        tuple: JSON error response and 404 status code.
+    """
     return {"message": str(error)}, 404
 
 def handle_bad_request(error):
+    """
+    Handle 400 Bad Request errors by returning JSON response.
+    
+    Args:
+        error: The exception object raised.
+        
+    Returns:
+        tuple: JSON error response and 400 status code.
+    """
     return {"message": str(error)}, 400
 
 def handle_unsupported_media_type(error):
+    """
+    Handle 415 Unsupported Media Type errors by returning JSON response.
+    
+    Args:
+        error: The exception object raised.
+        
+    Returns:
+        tuple: JSON error response and 415 status code.
+    """
     return {"message": str(error)}, 415
 
 def handle_conflict(error):
+    """
+    Handle 409 Conflict errors by returning JSON response.
+    
+    Args:
+        error: The exception object raised.
+        
+    Returns:
+        tuple: JSON error response and 409 status code.
+    """
     return {"message": str(error)}, 409
 
 def handle_forbidden(error):
+    """
+    Handle 403 Forbidden errors by returning JSON response.
+    
+    Args:
+        error: The exception object raised.
+        
+    Returns:
+        tuple: JSON error response and 403 status code.
+    """
     return {"message": str(error)}, 403
