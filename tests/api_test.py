@@ -1,8 +1,10 @@
 import pytest
 import json
 from flask import Flask
-from expenses.app import app  # Import the app instance
+from expenses import create_app
 from expenses.models import db, User, Group, GroupMember, Expense, ExpenseParticipant, ApiKey
+
+app = create_app({"TESTING": True})
 
 @pytest.fixture
 def client():
