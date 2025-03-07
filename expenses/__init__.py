@@ -11,9 +11,6 @@ from flask_caching import Cache
 from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMediaType, Forbidden
 
 # Import these at the top level to avoid import-outside-toplevel warnings
-from expenses.models import init_db_command
-from expenses.api import api_bp
-from expenses.utils import UserConverter, GroupConverter, ExpenseConverter
 
 db = SQLAlchemy()
 cache = Cache()
@@ -50,6 +47,9 @@ def create_app(test_config=None):
     db.init_app(app)
     cache.init_app(app)
 
+    from expenses.models import init_db_command
+    from expenses.utils import UserConverter, GroupConverter, ExpenseConverter
+    
     app.cli.add_command(init_db_command)
 
     # Register URL converters
@@ -57,6 +57,9 @@ def create_app(test_config=None):
     app.url_map.converters['group'] = GroupConverter
     app.url_map.converters['expense'] = ExpenseConverter
 
+
+    from expenses.api import api_bp
+    
     app.register_blueprint(api_bp)
 
     api_bp.errorhandler(NotFound)(handle_not_found)

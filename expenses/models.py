@@ -144,13 +144,27 @@ class ApiKey(db.Model):
         cascade="all, delete",
     )
 
-    def serialize(self):
-        """Serialize ApiKey object to dictionary."""
-        return {
+    def serialize(self, short_form=False):
+        """
+        Serialize ApiKey object to dictionary.
+        
+        Args:
+            short_form (bool): Whether to include only basic information.
+            
+        Returns:
+            dict: Serialized API key data.
+        """
+        data = {
             "id": self.uuid,
             "user_id": self.user.uuid,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
+        
+        if not short_form:
+            # Add additional fields for detailed view if needed
+            pass
+            
+        return data
 
     @staticmethod
     def get_hash(key):
@@ -269,13 +283,13 @@ class GroupMember(db.Model):
     role = db.Column(db.String(50), default="member")
     joined_at = db.Column(db.DateTime(timezone=True), default=get_current_time)
 
-    def serialize(self):
+    def serialize(self, short_form=False):
         """
         Serialize GroupMember object to dictionary.
-
+        
         Args:
-            short_form (bool): Whether to include only basic information (not used currently).
-
+            short_form (bool): Whether to include only basic information.
+            
         Returns:
             dict: Serialized group member data.
         """
@@ -286,7 +300,11 @@ class GroupMember(db.Model):
             "role": self.role,
             "joined_at": self.joined_at.isoformat() if self.joined_at else None,
         }
-
+        
+        if not short_form:
+            # Add user name for convenience in the detailed view
+            data["user_name"] = self.user.name
+            
         return data
 
     def deserialize(self, data):
@@ -424,13 +442,13 @@ class ExpenseParticipant(db.Model):
         if self.paid is not None:
             self.paid = float(self.paid)
 
-    def serialize(self):
+    def serialize(self, short_form=False):
         """
         Serialize ExpenseParticipant object to dictionary.
-
+        
         Args:
-            short_form (bool): Whether to include only basic information (not used currently).
-
+            short_form (bool): Whether to include only basic information.
+            
         Returns:
             dict: Serialized expense participant data.
         """
@@ -441,7 +459,12 @@ class ExpenseParticipant(db.Model):
             "share": float(self.share) if self.share is not None else None,
             "paid": float(self.paid) if self.paid is not None else None,
         }
-
+        
+        if not short_form:
+            # Add user name and balance information for a more detailed view
+            data["user_name"] = self.user.name
+            data["balance"] = float(self.paid) - float(self.share) if (self.paid is not None and self.share is not None) else None
+            
         return data
 
     def deserialize(self, data):
