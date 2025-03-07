@@ -22,27 +22,6 @@ A Flask-based expense tracking API that helps users manage shared expenses withi
 
 The project uses SQLite as the database. The database file will be created in the Flask instance folder when you run the application or initialization commands.
 
-## Project Structure
-
-```
-expense-tracker/
-├── expenses/
-│   ├── resources/
-│   │   ├── expense.py        # Expense resource
-│   │   ├── group_member.py   # Group member resource
-│   │   ├── group.py          # Group resource
-│   │   ├── user.py           # User resource
-│   ├── __init__.py           # Application factory
-│   ├── api.py                # API routes
-│   ├── models.py             # Database models
-│   ├── utils.py              # Utility classes and functions
-├── tests/
-│   ├── api_test.py           # Tests for API
-│   ├── db_test.py            # Tests for models
-├── requirements.txt
-└── README.md
-```
-
 ## Setup Instructions
 
 1. Clone the repository:
