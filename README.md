@@ -18,10 +18,6 @@ A Flask-based expense tracking API that helps users manage shared expenses withi
 - Expense tracking with participant shares
 - API for creating, updating, and querying expenses
 
-## Database
-
-The project uses SQLite as the database. The database file will be created in the Flask instance folder when you run the application or initialization commands.
-
 ## Setup Instructions
 
 1. Clone the repository:
