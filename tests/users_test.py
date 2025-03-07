@@ -182,3 +182,77 @@ class TestUserEndpoints:
         # Try to delete without authentication
         response = client.delete(f"/api/users/{user_uuid}")
         assert response.status_code == 403
+
+    def test_post_without_json(self, client):
+        """Test POST /api/users/ without JSON - Should return 415 Unsupported Media Type"""
+        response = client.post("/api/users/", data="not json")
+        assert response.status_code == 415
+        assert "must be JSON" in response.data.decode()
+
+    def test_post_missing_email(self, client):
+        """Test POST /api/users/ with missing email - Should return 400 Bad Request"""
+        user_data = {
+            "name": "Invalid User",
+            "password_hash": "password123",
+            # Missing email field
+        }
+        response = client.post(
+            "/api/users/", data=json.dumps(user_data), content_type="application/json"
+        )
+        assert response.status_code == 400
+        assert "Validation error" in json.loads(response.data)["message"]
+
+    def test_update_user_email_conflict(self, client):
+        """Test PUT /api/users/<user_id> with conflicting email - Should return 409 Conflict"""
+        # Create first user
+        api_key_1 = create_user(client, email="user1@example.com")
+
+        # Create second user
+        user_data = {
+            "name": "User 2",
+            "email": "user2@example.com",
+            "password_hash": "pass2",
+        }
+        client.post(
+            "/api/users/", data=json.dumps(user_data), content_type="application/json"
+        )
+
+        # Get first user's UUID
+        user1 = User.query.filter_by(email="user1@example.com").first()
+        user1_uuid = user1.uuid
+
+        # Try to update first user's email to second user's email
+        update_data = {"email": "user2@example.com"}
+        response = client.put(
+            f"/api/users/{user1_uuid}",
+            data=json.dumps(update_data),
+            headers=get_auth_headers(api_key_1),
+        )
+        assert response.status_code == 409
+        assert "already exists" in json.loads(response.data)["message"]
+
+    def test_delete_other_user(self, client):
+        """Test DELETE /api/users/<user_id> on another user's account - Should return 403 Forbidden"""
+        # Create first user
+        api_key_1 = create_user(client, email="user1@example.com")
+
+        # Create second user
+        user_data = {
+            "name": "User 2",
+            "email": "user2@example.com",
+            "password_hash": "pass2",
+        }
+        client.post(
+            "/api/users/", data=json.dumps(user_data), content_type="application/json"
+        )
+
+        # Get second user's UUID
+        user2 = User.query.filter_by(email="user2@example.com").first()
+        user2_uuid = user2.uuid
+
+        # Try to delete second user using first user's API key
+        response = client.delete(
+            f"/api/users/{user2_uuid}", headers=get_auth_headers(api_key_1)
+        )
+        assert response.status_code == 403
+        assert "own account" in json.loads(response.data)["message"]
