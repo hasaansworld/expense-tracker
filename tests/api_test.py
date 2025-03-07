@@ -1,6 +1,5 @@
 import pytest
 import json
-from flask import Flask
 from expenses import create_app
 from expenses.models import db, User, Group, GroupMember, Expense, ExpenseParticipant, ApiKey
 
