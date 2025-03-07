@@ -1,3 +1,9 @@
+"""API module for the expenses application.
+
+This module defines the Flask Blueprint and RESTful API 
+routes for the expenses application.
+"""
+
 from flask import Blueprint
 from flask_restful import Api
 from expenses.resources.user import UserCollection, UserItem
