@@ -2,6 +2,9 @@ from datetime import datetime, UTC
 import uuid
 from flask_sqlalchemy import SQLAlchemy
 import hashlib
+import click
+from flask.cli import with_appcontext
+from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy()
 
@@ -56,6 +59,18 @@ class User(db.Model):
             self.email = data["email"]
         if "password_hash" in data:
             self.password_hash = data["password_hash"]
+
+    @staticmethod
+    def get_schema():
+        return {
+            "type": "object",
+            "required": ["name", "email", "password_hash"],
+            "properties": {
+                "name": {"type": "string"},
+                "email": {"type": "string", "format": "email"},
+                "password_hash": {"type": "string"}
+            }
+        }
 
 class ApiKey(db.Model):
     __tablename__ = 'api_keys'
@@ -118,6 +133,16 @@ class Group(db.Model):
             self.name = data["name"]
         if "description" in data:
             self.description = data["description"]
+
+    @staticmethod
+    def get_schema():
+        return {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string"}
+            }
+        }
 
 class GroupMember(db.Model):
     __tablename__ = 'group_members'
@@ -202,6 +227,19 @@ class Expense(db.Model):
         if "category" in data:
             self.category = data["category"]
 
+        
+    @staticmethod
+    def get_schema():
+        return {
+            "type": "object",
+            "required": ["amount", "description"],
+            "properties": {
+                "amount": {"type": "number", "minimum": 0},
+                "description": {"type": "string"}
+            }
+        }
+
+
 class ExpenseParticipant(db.Model):
     __tablename__ = 'expense_participants'
     
@@ -241,3 +279,109 @@ class ExpenseParticipant(db.Model):
             self.share = float(data["share"])
         if "paid" in data:
             self.paid = float(data["paid"])
+
+    @staticmethod
+    def get_schema():
+        return {
+            "type": "object",
+            "required": ["user_id", "share"],
+            "properties": {
+                "user_id": {"type": "string"},
+                "share": {"type": "number", "minimum": 0}
+            }
+        }
+
+@click.command("init-db")
+@with_appcontext
+def init_db_command():
+    db.create_all()
+
+
+@click.command("testgen")
+@with_appcontext
+def generate_test_data():
+    """Generate test data for the expense tracker application."""
+    try:
+        # Create users
+        users = [
+            User(
+                name='John Doe',
+                email='john@example.com',
+                password_hash=generate_password_hash('password123')
+            ),
+            User(
+                name='Jane Smith',
+                email='jane@example.com',
+                password_hash=generate_password_hash('password456')
+            ),
+            User(
+                name='Bob Wilson',
+                email='bob@example.com',
+                password_hash=generate_password_hash('password789')
+            )
+        ]
+        
+        for user in users:
+            db.session.add(user)
+        db.session.commit()
+
+        # Create a group
+        group = Group(
+            name='Roommates',
+            description='Apartment expenses',
+            created_by=users[0].id
+        )
+        db.session.add(group)
+        db.session.commit()
+
+        # Add members to the group
+        members = [
+            GroupMember(user_id=user.id, group_id=group.id)
+            for user in users
+        ]
+        # Make the first user an admin
+        members[0].role = 'admin'
+        
+        for member in members:
+            db.session.add(member)
+        db.session.commit()
+
+        # Create an expense
+        expense = Expense(
+            group_id=group.id,
+            created_by=users[0].id,
+            amount=150.00,
+            description='Groceries',
+            category='Food'
+        )
+        db.session.add(expense)
+        db.session.commit()
+
+        # Add expense participants
+        participants = [
+            ExpenseParticipant(
+                expense_id=expense.id,
+                user_id=users[0].id,
+                share=50.00,
+                paid=150.00
+            ),
+            ExpenseParticipant(
+                expense_id=expense.id,
+                user_id=users[1].id,
+                share=50.00,
+                paid=0.00
+            ),
+            ExpenseParticipant(
+                expense_id=expense.id,
+                user_id=users[2].id,
+                share=50.00,
+                paid=0.00
+            )
+        ]
+        for participant in participants:
+            db.session.add(participant)
+        db.session.commit()
+        
+        click.echo("Test data generated successfully!")
+    except Exception as e:
+        click.echo(f"Error generating test data: {str(e)}", err=True)

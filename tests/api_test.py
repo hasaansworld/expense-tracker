@@ -1,8 +1,8 @@
 import pytest
 import json
 from flask import Flask
-from app.app import app  # Import the app instance
-from app.models import db, User, Group, GroupMember, Expense, ExpenseParticipant, ApiKey
+from expenses.app import app  # Import the app instance
+from expenses.models import db, User, Group, GroupMember, Expense, ExpenseParticipant, ApiKey
 
 @pytest.fixture
 def client():
