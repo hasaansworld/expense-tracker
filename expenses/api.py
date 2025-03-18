@@ -24,3 +24,4 @@ api.add_resource(GroupMemberItem, '/groups/<group:group>/members/<user:user>')
 api.add_resource(ExpenseCollection, '/groups/<group:group>/expenses/')
 api.add_resource(ExpenseItem, '/expenses/<expense:expense>')
 api.add_resource(ExpenseParticipantCollection, '/expenses/<expense:expense>/participants/')
+
