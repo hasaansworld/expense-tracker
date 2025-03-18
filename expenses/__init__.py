@@ -4,8 +4,8 @@ Expense tracking application module.
 This module initializes the Flask application with database,
 caching, and API routing configurations.
 """
-import os
-from flask import Flask, redirect, request, jsonify, url_for
+import os, json
+from flask import Flask, redirect, request, Response, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMediaType, Forbidden
@@ -15,46 +15,46 @@ from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMedia
 db = SQLAlchemy()
 cache = Cache()
 
-# json error handlers
+
+
 def handle_not_found(error):
     """
     Custom 404 error handler that returns a JSON response with the error message first,
     followed by available API endpoints.
     """
-    # Define available API endpoints with descriptions and methods.
-    available_routes = [
-        {
-            "url": url_for("api.usercollection", _external=True),
-            "description": "Manage users",
-            "methods": ["GET", "POST"]
-        },
-        {
-            "url": url_for("api.useritem", user="1", _external=True),
-            "description": "Manage a specific user",
-            "methods": ["GET", "PUT", "DELETE"]
-        },
-        {
-            "url": url_for("api.groupcollection", _external=True),
-            "description": "Manage groups",
-            "methods": ["GET", "POST"]
-        },
-        {
-            "url": url_for("api.groupitem", group="1", _external=True),
-            "description": "Manage a specific group",
-            "methods": ["GET", "PUT", "DELETE"]
-        },
-        {
-            "url": url_for("api.expensecollection", group="1", _external=True),
-            "description": "Manage group expenses",
-            "methods": ["GET", "POST"]
-        },
-    ]
-
-    return jsonify({
+    response_data = {
         "error": "Not Found",
-        "message": f"The requested URL {error.description} was not found on the server.",
-        "available_routes": available_routes  # This comes last now
-    }), 404
+        "message": "The requested URL was not found on the server.",
+        "available_routes": {
+            "User Endpoints": [
+                {"method": "GET", "url": "/api/users/", "description": "Get all users"},
+                {"method": "POST", "url": "/api/users/", "description": "Create a new user"},
+                {"method": "GET", "url": "/api/users/<user_id>", "description": "Get a specific user"},
+                {"method": "PUT", "url": "/api/users/<user_id>", "description": "Update a user"},
+                {"method": "DELETE", "url": "/api/users/<user_id>", "description": "Delete a user"}
+            ],
+            "Group Endpoints": [
+                {"method": "GET", "url": "/api/groups/", "description": "Get all groups"},
+                {"method": "POST", "url": "/api/groups/", "description": "Create a new group"},
+                {"method": "GET", "url": "/api/groups/<group_id>", "description": "Get a specific group"},
+                {"method": "PUT", "url": "/api/groups/<group_id>", "description": "Update a group"},
+                {"method": "DELETE", "url": "/api/groups/<group_id>", "description": "Delete a group"}
+            ],
+            "Expense Endpoints": [
+                {"method": "GET", "url": "/api/groups/<group_id>/expenses/", "description": "Get all expenses in a group"},
+                {"method": "POST", "url": "/api/groups/<group_id>/expenses/", "description": "Create a new expense in a group"},
+                {"method": "GET", "url": "/api/expenses/<expense_id>", "description": "Get a specific expense"},
+                {"method": "PUT", "url": "/api/expenses/<expense_id>", "description": "Update an expense"},
+                {"method": "DELETE", "url": "/api/expenses/<expense_id>", "description": "Delete an expense"}
+            ]
+        }
+    }
+
+    # Convert to JSON string with `ensure_ascii=False` to prevent escaping
+    response_json = json.dumps(response_data, ensure_ascii=False, indent=4)
+
+    return Response(response_json, status=404, mimetype="application/json")
+
 
 
 
