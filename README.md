@@ -176,6 +176,169 @@ The API tests verify:
 - Error handling
 - Data validation
 
+
+
+
+# Hypermedia Implementation
+
+This API implements **HATEOAS (Hypermedia as the Engine of Application State)** by embedding `_links` in all responses that represent resources. These links describe the available actions the client can take next, making the API self-descriptive and navigable without relying on external documentation.
+
+### Design Goal
+
+Enable clients to dynamically explore and interact with the API using hypermedia controls instead of hardcoding endpoint paths.
+
+---
+
+## Endpoints Enhanced with Hypermedia
+
+Each resource now includes a `_links` object in its JSON response, showing available operations (`self`, `update`, `delete`, etc.) and related sub-resources.
+
+###  `/groups/` – `GroupCollection`
+
+Returns a list of groups with each item containing:
+
+```json
+"_links": {
+  "self": "/groups/<group_id>",
+  "members": { "href": "/groups/<group_id>/members/", "method": "GET" },
+  "expenses": { "href": "/groups/<group_id>/expenses/", "method": "GET" }
+}
+```
+
+---
+
+### `/groups/<group_id>` – `GroupItem`
+
+Returns full group details with:
+
+```json
+"_links": {
+  "self": "/groups/<group_id>",
+  "members": { "href": "/groups/<group_id>/members/", "method": "GET" },
+  "expenses": { "href": "/groups/<group_id>/expenses/", "method": "GET" },
+  "update": { "href": "/groups/<group_id>", "method": "PUT" },
+  "delete": { "href": "/groups/<group_id>", "method": "DELETE" }
+}
+```
+
+---
+
+### `/groups/<group_id>/members/` – `GroupMemberCollection`
+
+Each member includes:
+
+```json
+"_links": {
+  "self": "/groups/<group_id>/members/<user_id>",
+  "delete": { "href": "/groups/<group_id>/members/<user_id>", "method": "DELETE" },
+  "user": { "href": "/users/<user_id>", "method": "GET" }
+}
+```
+
+---
+
+### `/groups/<group_id>/expenses/` – `ExpenseCollection`
+
+Each expense includes:
+
+```json
+"_links": {
+  "self": "/expenses/<expense_id>",
+  "update": { "href": "/expenses/<expense_id>", "method": "PUT" },
+  "delete": { "href": "/expenses/<expense_id>", "method": "DELETE" }
+}
+```
+
+---
+
+### `/expenses/<expense_id>` – `ExpenseItem`
+
+Full expense object includes:
+
+```json
+"_links": {
+  "self": "/expenses/<expense_id>",
+  "update": { "href": "/expenses/<expense_id>", "method": "PUT" },
+  "delete": { "href": "/expenses/<expense_id>", "method": "DELETE" },
+  "participants": { "href": "/expenses/<expense_id>/participants/", "method": "GET" }
+}
+```
+
+---
+
+### `/expenses/<expense_id>/participants/` – `ExpenseParticipantCollection`
+
+Each participant includes:
+
+```json
+"_links": {
+  "self": "/expenses/<expense_id>/participants/",
+  "user": { "href": "/users/<user_id>", "method": "GET" }
+}
+```
+
+And the collection-level `_links`:
+
+```json
+"_links": {
+  "self": "/expenses/<expense_id>/participants/",
+  "add": { "href": "/expenses/<expense_id>/participants/", "method": "POST" }
+}
+```
+
+---
+
+### `/users/` – `UserCollection`
+
+Each user includes:
+
+```json
+"_links": {
+  "self": "/users/<user_id>",
+  "update": { "href": "/users/<user_id>", "method": "PUT" }
+}
+```
+
+---
+
+### `/users/<user_id>` – `UserItem`
+
+```json
+"_links": {
+  "self": "/users/<user_id>",
+  "update": { "href": "/users/<user_id>", "method": "PUT" }
+}
+```
+
+---
+
+## How It’s Implemented
+
+Hypermedia links are generated dynamically inside each `get()` or `post()` method in the Flask-RESTful resource classes.
+
+- Each link reflects the actual path and available actions for the resource
+- Methods and URLs are hardcoded using Python string formatting (e.g., `f"/groups/{group.id}"`)
+- `_links` are injected into every resource-level response (`GET`, `POST`, etc.)
+
+---
+
+## Example: Expense Response with Hypermedia
+
+```json
+{
+  "id": "abc123",
+  "amount": 150.00,
+  "description": "Groceries",
+  "_links": {
+    "self": "/expenses/abc123",
+    "update": { "href": "/expenses/abc123", "method": "PUT" },
+    "delete": { "href": "/expenses/abc123", "method": "DELETE" },
+    "participants": { "href": "/expenses/abc123/participants/", "method": "GET" }
+  }
+}
+```
+
+
 ## License
 
 This project is for educational purposes as part of the PWP course at the University of Oulu.

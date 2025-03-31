@@ -20,9 +20,26 @@ class GroupCollection(Resource):
 
     @cache.cached(timeout=30)
     def get(self):
-        """Get all groups"""
-        groups = Group.query.all()
-        return {"groups": [group.serialize(short_form=True) for group in groups]}, 200
+            """Get all groups"""
+            groups = Group.query.all()
+            return {
+                "groups": [
+                    {
+                        **group.serialize(short_form=True),
+                        "_links": {
+                            "self": f"/groups/{group.id}",
+                            "members": {
+                                "href": f"/groups/{group.id}/members/",
+                                "method": "GET"
+                            },
+                            "expenses": {
+                                "href": f"/groups/{group.id}/expenses/",
+                                "method": "GET"
+                            }
+                        }
+                    } for group in groups
+                ]
+            }, 200
 
     @require_api_key
     def post(self):
@@ -52,7 +69,20 @@ class GroupCollection(Resource):
         # Clear cache
         cache.delete("groups")
 
-        return {"group": group.serialize()}, 201
+        return {
+            "group": group.serialize(),
+            "_links": {
+                "self": f"/groups/{group.id}",
+                "members": {
+                    "href": f"/groups/{group.id}/members/",
+                    "method": "GET"
+                },
+                "expenses": {
+                    "href": f"/groups/{group.id}/expenses/",
+                    "method": "GET"
+                }
+            }
+        }, 201
 
 
 class GroupItem(Resource):
@@ -61,7 +91,28 @@ class GroupItem(Resource):
     @cache.cached(timeout=30)
     def get(self, group):
         """Get group details"""
-        return {"group": group.serialize()}, 200
+        return {
+            **group.serialize(),
+            "_links": {
+                "self": f"/groups/{group.id}",
+                "members": {
+                    "href": f"/groups/{group.id}/members/",
+                    "method": "GET"
+                },
+                "expenses": {
+                    "href": f"/groups/{group.id}/expenses/",
+                    "method": "GET"
+                },
+                "update": {
+                    "href": f"/groups/{group.id}",
+                    "method": "PUT"
+                },
+                "delete": {
+                    "href": f"/groups/{group.id}",
+                    "method": "DELETE"
+                }
+            }
+        }, 200
 
     @require_api_key
     def put(self, group):
@@ -84,7 +135,12 @@ class GroupItem(Resource):
         cache.delete("groups")
         cache.delete(f"groups/{group.uuid}/members")
 
-        return {"group": group.serialize()}, 200
+        return {
+            "group": group.serialize(),
+            "_links": {
+                "self": f"/groups/{group.id}"
+            }
+        }, 200
 
     @require_api_key
     def delete(self, group):

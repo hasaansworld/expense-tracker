@@ -27,7 +27,31 @@ class GroupMemberCollection(Resource):
     def get(self, group):
         """Get all members of a group"""
         members = GroupMember.query.filter_by(group_id=group.id).all()
-        return {"members": [member.serialize() for member in members]}, 200
+        return {
+            "members": [
+                {
+                    **member.serialize(),
+                    "_links": {
+                        "self": f"/groups/{group.id}/members/{member.user_id}",
+                        "delete": {
+                            "href": f"/groups/{group.id}/members/{member.user_id}",
+                            "method": "DELETE"
+                        },
+                        "user": {
+                            "href": f"/users/{member.user_id}",
+                            "method": "GET"
+                        }
+                    }
+                } for member in members
+            ],
+            "_links": {
+                "self": f"/groups/{group.id}/members/",
+                "add": {
+                    "href": f"/groups/{group.id}/members/",
+                    "method": "POST"
+                }
+            }
+        }, 200
 
     @require_api_key
     def post(self, group):
@@ -68,7 +92,12 @@ class GroupMemberCollection(Resource):
         cache.delete(f"groups/{group.uuid}/members")
         cache.delete(f"groups/{group.uuid}")
 
-        return {"member": member.serialize()}, 201
+        return {
+            "member": member.serialize(),
+            "_links": {
+                "self": f"/groups/{group.id}/members/{user.id}"
+            }
+        }, 201
 
 
 class GroupMemberItem(Resource):
