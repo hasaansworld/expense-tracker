@@ -21,7 +21,27 @@ class UserCollection(Resource):
     def get(self):
         """Get all users"""
         users = User.query.all()
-        return {"users": [user.serialize(short_form=True) for user in users]}, 200
+        return {
+            "users": [
+                {
+                    **user.serialize(short_form=True),
+                    "_links": {
+                        "self": f"/users/{user.id}",
+                        "update": {
+                            "href": f"/users/{user.id}",
+                            "method": "PUT"
+                        }
+                    }
+                } for user in users
+            ],
+            "_links": {
+                "self": "/users/",
+                "create": {
+                    "href": "/users/",
+                    "method": "POST"
+                }
+            }
+        }, 200
 
     def post(self):
         """Create a new user"""
@@ -54,7 +74,16 @@ class UserCollection(Resource):
         # Clear cache
         cache.delete("users")
 
-        return {"user": user.serialize(), "api_key": api_key}, 201
+        return {
+            "user": user.serialize(),
+            "_links": {
+                "self": f"/users/{user.id}",
+                "update": {
+                    "href": f"/users/{user.id}",
+                    "method": "PUT"
+                }
+            }
+        }, 201
 
 
 class UserItem(Resource):
@@ -89,7 +118,18 @@ class UserItem(Resource):
         cache.delete(f"users/{user.uuid}")
         cache.delete("users")
 
-        return {"user": user.serialize()}, 200
+        def get(self, user):
+            """Get user details"""
+            return {
+                **user.serialize(),
+                "_links": {
+                    "self": f"/users/{user.id}",
+                    "update": {
+                        "href": f"/users/{user.id}",
+                        "method": "PUT"
+                    }
+                }
+            }, 200
 
     @require_api_key
     def delete(self, user):

@@ -19,12 +19,29 @@ from expenses.utils import require_api_key
 class ExpenseCollection(Resource):
     """Resource for collection of Expense objects in a group"""
 
+
     @cache.cached(timeout=30)
     def get(self, group):
         """Get all expenses in a group"""
         expenses = Expense.query.filter_by(group_id=group.id).all()
         return {
-            "expenses": [expense.serialize(short_form=True) for expense in expenses]
+            "expenses": [
+                {
+                    **expense.serialize(short_form=True),
+                    "_links": {
+                        "self": f"/api/groups/{group.id}/expenses/{expense.id}",
+                        "update": {
+                            "href": f"/api/groups/{group.id}/expenses/{expense.id}",
+                            "method": "PUT"
+                        },
+                        "delete": {
+                            "href": f"/api/groups/{group.id}/expenses/{expense.id}",
+                            "method": "DELETE"
+                        }
+                    }
+                }
+                for expense in expenses
+            ]
         }, 200
 
     @require_api_key
@@ -100,7 +117,16 @@ class ExpenseCollection(Resource):
         # Clear cache
         cache.delete(f"groups/{group.uuid}/expenses")
 
-        return {"expense": expense.serialize()}, 201
+        return {
+            "expense": expense.serialize(),
+            "_links": {
+                "self": f"/expenses/{expense.id}",
+                "participants": {
+                    "href": f"/expenses/{expense.id}/participants/",
+                    "method": "GET"
+                }
+            }
+        }, 201
 
 
 class ExpenseItem(Resource):
@@ -109,7 +135,20 @@ class ExpenseItem(Resource):
     @cache.cached(timeout=30)
     def get(self, expense):
         """Get expense details"""
-        return {"expense": expense.serialize()}, 200
+        return {
+            **expense.serialize(),
+            "_links": {
+                "self": f"/api/groups/{expense.group_id}/expenses/{expense.id}",
+                "update": {
+                    "href": f"/api/groups/{expense.group_id}/expenses/{expense.id}",
+                    "method": "PUT"
+                },
+                "delete": {
+                    "href": f"/api/groups/{expense.group_id}/expenses/{expense.id}",
+                    "method": "DELETE"
+                }
+            }
+        }, 200
 
     @require_api_key
     def put(self, expense):
@@ -238,5 +277,24 @@ class ExpenseParticipantCollection(Resource):
         """Get all participants in an expense"""
         participants = ExpenseParticipant.query.filter_by(expense_id=expense.id).all()
         return {
-            "participants": [participant.serialize() for participant in participants]
+            "participants": [
+                {
+                    **participant.serialize(),
+                    "_links": {
+                        "self": f"/expenses/{expense.id}/participants/",
+                        "user": {
+                            "href": f"/users/{participant.user_id}",
+                            "method": "GET"
+                        }
+                    }
+                }
+                for participant in participants
+            ],
+            "_links": {
+                "self": f"/expenses/{expense.id}/participants/",
+                "add": {
+                    "href": f"/expenses/{expense.id}/participants/",
+                    "method": "POST"
+                }
+            }
         }, 200
