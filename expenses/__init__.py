@@ -9,6 +9,7 @@ from flask import Flask, redirect, request, Response, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from werkzeug.exceptions import NotFound, Conflict, BadRequest, UnsupportedMediaType, Forbidden
+from flask_cors import CORS
 
 # Import these at the top level to avoid import-outside-toplevel warnings
 
@@ -176,7 +177,7 @@ def create_app(test_config=None):
 
 
     
-
+    CORS(app)
     return app
 
 

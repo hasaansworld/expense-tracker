@@ -1,0 +1,278 @@
+info:
+  description: Comprehensive OpenAPI documentation for the Expense Tracker RESTful
+    API with hypermedia.
+  title: Expense Tracker API
+  version: 1.0.0
+openapi: 3.0.0
+paths:
+  /expenses/{expense_id}:
+    delete:
+      parameters:
+      - in: path
+        name: expense_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Expense deleted
+      summary: Delete an expense
+    get:
+      parameters:
+      - in: path
+        name: expense_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                _links:
+                  delete:
+                    href: /expenses/12
+                    method: DELETE
+                  group:
+                    href: /groups/3
+                  participants:
+                    href: /expenses/12/participants/
+                    method: GET
+                  self:
+                    href: /expenses/12
+                  update:
+                    href: /expenses/12
+                    method: PUT
+                amount: 50.0
+                description: Groceries
+                id: 12
+          description: Expense data
+        '404':
+          description: Expense not found
+      summary: Retrieve a single expense
+    put:
+      parameters:
+      - in: path
+        name: expense_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            example:
+              amount: 100.0
+              description: Updated groceries
+        required: true
+      responses:
+        '200':
+          description: Expense updated
+        '400':
+          description: Invalid input
+      summary: Update an expense
+  /expenses/{expense_id}/participants/:
+    get:
+      parameters:
+      - in: path
+        name: expense_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: List of participants
+      summary: List participants of an expense
+    post:
+      parameters:
+      - in: path
+        name: expense_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            example:
+              share: 25.0
+              user_id: 1
+        required: true
+      responses:
+        '201':
+          description: Participant added
+        '400':
+          description: Invalid input
+      summary: Add a participant to an expense
+  /groups/:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                _links:
+                  self:
+                    href: /groups/
+                groups:
+                - _links:
+                    delete:
+                      href: /groups/1
+                      method: DELETE
+                    expenses:
+                      href: /groups/1/expenses/
+                      method: GET
+                    members:
+                      href: /groups/1/members/
+                      method: GET
+                    self:
+                      href: /groups/1
+                    update:
+                      href: /groups/1
+                      method: PUT
+                  id: 1
+                  name: Project Team
+          description: List of groups
+      summary: List all groups
+    post:
+      requestBody:
+        content:
+          application/json:
+            example:
+              description: Vacation expenses
+              name: Trip Team
+        required: true
+      responses:
+        '201':
+          description: Group created
+        '400':
+          description: Invalid input
+      summary: Create a new group
+  /groups/{group_id}:
+    delete:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Group deleted
+        '404':
+          description: Group not found
+      summary: Delete a group
+    get:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Group found
+        '404':
+          description: Group not found
+      summary: Get group details
+    put:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            example:
+              description: Updated description
+              name: Updated Team Name
+        required: true
+      responses:
+        '200':
+          description: Group updated
+        '400':
+          description: Invalid input
+      summary: Update a group
+  /groups/{group_id}/expenses/:
+    get:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: List of expenses
+      summary: List all expenses in a group
+    post:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            example:
+              amount: 75.0
+              description: Dinner
+        required: true
+      responses:
+        '201':
+          description: Expense created
+        '400':
+          description: Invalid input
+      summary: Create an expense in a group
+  /groups/{group_id}/members/:
+    get:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: List of members
+      summary: List all members in a group
+    post:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            example:
+              user_id: 2
+        required: true
+      responses:
+        '201':
+          description: Member added
+        '400':
+          description: Invalid input
+      summary: Add a member to a group
+  /groups/{group_id}/members/{user_id}:
+    delete:
+      parameters:
+      - in: path
+        name: group_id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Member removed
+      summary: Remove a member from a group
+servers:
+- description: Local development server
+  url: http://127.0.0.1/:5000/api
