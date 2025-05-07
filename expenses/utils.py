@@ -153,3 +153,26 @@ class ExpenseConverter(BaseConverter):
             str: UUID string for the URL
         """
         return value.uuid if isinstance(value, Expense) else str(value)
+
+
+def make_links(resource: str, resource_id: int, extras: dict = None, full_path: str = None) -> dict:
+    """
+    Generate hypermedia _links for a REST resource.
+
+    Args:
+        resource (str): The base resource path (e.g. 'groups', 'expenses').
+        resource_id (int): The ID of the resource.
+        extras (dict): Additional custom links to merge.
+
+    Returns:
+        dict: A dictionary with standard and custom _links.
+    """
+    path = full_path or f"/{resource}/{resource_id}"
+    links = {
+        "self": {"href": path},
+        "update": {"href": path, "method": "PUT"},
+        "delete": {"href": path, "method": "DELETE"}
+    }
+    if extras:
+        links.update(extras)
+    return links

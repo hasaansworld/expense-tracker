@@ -11,7 +11,7 @@ from flask_restful import Resource
 from jsonschema import validate, ValidationError
 from werkzeug.exceptions import BadRequest, UnsupportedMediaType, Forbidden
 from expenses import cache
-from expenses.utils import require_api_key
+from expenses.utils import require_api_key, make_links
 from expenses.models import db, Group, GroupMember
 
 
@@ -20,26 +20,25 @@ class GroupCollection(Resource):
 
     @cache.cached(timeout=30)
     def get(self):
-            """Get all groups"""
-            groups = Group.query.all()
-            return {
-                "groups": [
-                    {
-                        **group.serialize(short_form=True),
-                        "_links": {
-                            "self": f"/groups/{group.id}",
-                            "members": {
-                                "href": f"/groups/{group.id}/members/",
-                                "method": "GET"
-                            },
-                            "expenses": {
-                                "href": f"/groups/{group.id}/expenses/",
-                                "method": "GET"
-                            }
+        """Get all groups"""
+        groups = Group.query.all()
+        return {
+            "groups": [
+                {
+                    **group.serialize(short_form=True),
+                    "_links": make_links("groups", group.id, {
+                        "members": {
+                            "href": f"/groups/{group.id}/members/",
+                            "method": "GET"
+                        },
+                        "expenses": {
+                            "href": f"/groups/{group.id}/expenses/",
+                            "method": "GET"
                         }
-                    } for group in groups
-                ]
-            }, 200
+                    })
+                } for group in groups
+            ]
+        }, 200
 
     @require_api_key
     def post(self):
@@ -71,8 +70,7 @@ class GroupCollection(Resource):
 
         return {
             "group": group.serialize(),
-            "_links": {
-                "self": f"/groups/{group.id}",
+            "_links": make_links("groups", group.id, {
                 "members": {
                     "href": f"/groups/{group.id}/members/",
                     "method": "GET"
@@ -81,7 +79,7 @@ class GroupCollection(Resource):
                     "href": f"/groups/{group.id}/expenses/",
                     "method": "GET"
                 }
-            }
+            })
         }, 201
 
 
@@ -92,9 +90,8 @@ class GroupItem(Resource):
     def get(self, group):
         """Get group details"""
         return {
-            **group.serialize(),
-            "_links": {
-                "self": f"/groups/{group.id}",
+            "group": group.serialize(),
+            "_links": make_links("groups", group.id, {
                 "members": {
                     "href": f"/groups/{group.id}/members/",
                     "method": "GET"
@@ -102,16 +99,8 @@ class GroupItem(Resource):
                 "expenses": {
                     "href": f"/groups/{group.id}/expenses/",
                     "method": "GET"
-                },
-                "update": {
-                    "href": f"/groups/{group.id}",
-                    "method": "PUT"
-                },
-                "delete": {
-                    "href": f"/groups/{group.id}",
-                    "method": "DELETE"
                 }
-            }
+            })
         }, 200
 
     @require_api_key
@@ -137,9 +126,7 @@ class GroupItem(Resource):
 
         return {
             "group": group.serialize(),
-            "_links": {
-                "self": f"/groups/{group.id}"
-            }
+            "_links": make_links("groups", group.id)
         }, 200
 
     @require_api_key

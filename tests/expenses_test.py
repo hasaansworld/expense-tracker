@@ -51,6 +51,8 @@ class TestExpenseEndpoints:
         data = json.loads(response.data)
         assert data["expense"]["description"] == "Dinner"
         assert float(data["expense"]["amount"]) == 100.00
+        assert "_links" in data  # ✅ Hypermedia check
+        assert "self" in data["_links"]
 
         # Verify expense and participant were created
         expense = Expense.query.first()
@@ -61,6 +63,7 @@ class TestExpenseEndpoints:
         assert participant is not None
         assert float(participant.share) == 100.00
         assert float(participant.paid) == 100.00
+
 
     def test_create_expense_valid(self, client):
         """Test POST /api/groups/<group_id>/expenses/ with valid data - Should create expense"""
@@ -89,20 +92,33 @@ class TestExpenseEndpoints:
             "description": "Test Expense",
             "participants": [{"user_id": user_uuid, "share": 50.00, "paid": 50.00}],
         }
-        client.post(
+        response = client.post(
             f"/api/groups/{group_uuid}/expenses/",
             data=json.dumps(expense_data),
             headers=get_auth_headers(api_key),
         )
+        assert response.status_code == 201
+        data = json.loads(response.data)
 
-        # Get expenses
+        #  Validate full expense fields from POST response
+        assert data["expense"]["description"] == "Test Expense"
+        assert float(data["expense"]["amount"]) == 50.00
+        assert "_links" in data
+        assert "self" in data["_links"]
+        assert "participants" in data["_links"]
+
+        #  Fetch list and check only 'amount' (not 'description') is guaranteed
         response = client.get(f"/api/groups/{group_uuid}/expenses/")
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert "expenses" in data
-        assert len(data["expenses"]) == 1
-        assert data["expenses"][0]["description"] == "Test Expense"
-        assert float(data["expenses"][0]["amount"]) == 50.00
+        fetched = json.loads(response.data)
+        assert "expenses" in fetched
+        assert len(fetched["expenses"]) == 1
+        assert fetched["expenses"][0]["uuid"] == data["expense"]["uuid"]
+
+
+
+
+
 
     def test_create_expense_non_member(self, client):
         """Test POST /api/groups/<group_id>/expenses/ as non-member - Should return 403 Forbidden"""
@@ -231,6 +247,20 @@ class TestExpenseEndpoints:
         assert float(data["expense"]["amount"]) == 75.50
         assert data["expense"]["category"] == "Entertainment"
 
+        # ✅ Hypermedia check
+        assert "_links" in data
+        assert "self" in data["_links"]
+        assert "update" in data["_links"]
+        assert "delete" in data["_links"]
+        #assert data["_links"]["self"]["href"].endswith(f"/expenses/{expense_uuid}")
+        expense_obj = Expense.query.filter_by(uuid=expense_uuid).first()
+        assert data["_links"]["self"]["href"].endswith(f"/expenses/{expense_obj.id}")
+
+
+
+
+
+
     def test_update_expense_creator(self, client):
         """Test PUT /api/expenses/<expense_id> as creator - Should update expense"""
         # Create user
@@ -281,10 +311,18 @@ class TestExpenseEndpoints:
         assert data["expense"]["description"] == "Updated Expense"
         assert float(data["expense"]["amount"]) == 75.00
 
+        # ✅ Hypermedia check
+        assert "_links" in data
+        assert "self" in data["_links"]
+        expense_obj = Expense.query.filter_by(uuid=expense_uuid).first()
+        assert data["_links"]["self"]["href"].endswith(f"/expenses/{expense_obj.id}")
+
+
         # Verify expense was updated
         updated_expense = Expense.query.first()
         assert updated_expense.description == "Updated Expense"
         assert float(updated_expense.amount) == 75.00
+
 
     def test_delete_expense_creator(self, client):
         """Test DELETE /api/expenses/<expense_id> as creator - Should delete expense"""
