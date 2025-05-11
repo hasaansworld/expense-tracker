@@ -23,7 +23,7 @@ paths:
                 - id: 101
                   name: Roommates
                   description: Shared apartment expenses
-                  _links:
+                  "@controls":
                     self:
                       href: /groups/101
                     update:
@@ -38,7 +38,7 @@ paths:
                     expenses:
                       href: /groups/101/expenses/
                       method: GET
-                _links:
+                "@controls":
                   self:
                     href: /groups/
     post:
@@ -61,13 +61,13 @@ paths:
           description: Resource not found
         '415':
           description: "Unsupported Media Type \u2013 Use Content-Type: application/json"
-  /groups/{group_id}:
+  /groups/{group_uuid}:
     get:
       summary: Get group details
       tags:
       - Groups
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       responses:
         '400':
           description: Invalid input
@@ -82,7 +82,7 @@ paths:
                 - id: 101
                   name: Roommates
                   description: Shared apartment expenses
-                  _links:
+                  "@controls":
                     self:
                       href: /groups/101
                     update:
@@ -97,7 +97,7 @@ paths:
                     expenses:
                       href: /groups/101/expenses/
                       method: GET
-                _links:
+                "@controls":
                   self:
                     href: /groups/
     put:
@@ -105,7 +105,7 @@ paths:
       tags:
       - Groups
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       requestBody:
         required: true
         content:
@@ -127,7 +127,7 @@ paths:
       tags:
       - Groups
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       responses:
         '400':
           description: Invalid input
@@ -135,13 +135,13 @@ paths:
           description: Resource not found
         '204':
           description: Deleted successfully
-  /groups/{group_id}/members/:
+  /groups/{group_uuid}/members/:
     get:
       summary: List all members in a group
       tags:
       - Members
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       responses:
         '400':
           description: Invalid input
@@ -156,7 +156,7 @@ paths:
                 - id: 101
                   name: Roommates
                   description: Shared apartment expenses
-                  _links:
+                  "@controls":
                     self:
                       href: /groups/101
                     update:
@@ -171,7 +171,7 @@ paths:
                     expenses:
                       href: /groups/101/expenses/
                       method: GET
-                _links:
+                "@controls":
                   self:
                     href: /groups/
     post:
@@ -179,7 +179,7 @@ paths:
       tags:
       - Members
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       requestBody:
         required: true
         content:
@@ -195,14 +195,14 @@ paths:
           description: Resource not found
         '415':
           description: "Unsupported Media Type \u2013 Use Content-Type: application/json"
-  /groups/{group_id}/members/{user_id}:
+  /groups/{group_uuid}/members/{user_uuid}:
     delete:
       summary: Remove a member from a group
       tags:
       - Members
       parameters:
-      - $ref: '#/components/parameters/group_id'
-      - $ref: '#/components/parameters/user_id'
+      - $ref: '#/components/parameters/group_uuid'
+      - $ref: '#/components/parameters/user_uuid'
       responses:
         '400':
           description: Invalid input
@@ -210,13 +210,13 @@ paths:
           description: Resource not found
         '204':
           description: Deleted successfully
-  /groups/{group_id}/expenses/:
+  /groups/{group_uuid}/expenses/:
     get:
       summary: List all expenses in a group
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       responses:
         '400':
           description: Invalid input
@@ -231,7 +231,7 @@ paths:
                 - id: 5001
                   amount: 200.5
                   description: March Electricity Bill
-                  _links:
+                  "@controls":
                     self:
                       href: /expenses/5001
                     update:
@@ -248,7 +248,7 @@ paths:
                 - id: 5002
                   amount: 95.75
                   description: Groceries
-                  _links:
+                  "@controls":
                     self:
                       href: /expenses/5002
                     update:
@@ -262,7 +262,7 @@ paths:
                       method: GET
                     group:
                       href: /groups/101
-                _links:
+                "@controls":
                   self:
                     href: /groups/101/expenses/
     post:
@@ -270,7 +270,7 @@ paths:
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/group_id'
+      - $ref: '#/components/parameters/group_uuid'
       requestBody:
         required: true
         content:
@@ -287,13 +287,13 @@ paths:
           description: Resource not found
         '415':
           description: "Unsupported Media Type \u2013 Use Content-Type: application/json"
-  /expenses/{expense_id}:
+  /expenses/{expense_uuid}:
     get:
       summary: Retrieve a single expense
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/expense_id'
+      - $ref: '#/components/parameters/expense_uuid'
       responses:
         '200':
           description: Successful response
@@ -310,7 +310,7 @@ paths:
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/expense_id'
+      - $ref: '#/components/parameters/expense_uuid'
       requestBody:
         required: true
         content:
@@ -332,7 +332,7 @@ paths:
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/expense_id'
+      - $ref: '#/components/parameters/expense_uuid'
       responses:
         '400':
           description: Invalid input
@@ -340,13 +340,13 @@ paths:
           description: Resource not found
         '204':
           description: Deleted successfully
-  /expenses/{expense_id}/participants/:
+  /expenses/{expense_uuid}/participants/:
     get:
       summary: List participants of an expense
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/expense_id'
+      - $ref: '#/components/parameters/expense_uuid'
       responses:
         '400':
           description: Invalid input
@@ -360,12 +360,12 @@ paths:
                 participants:
                 - user_id: 1
                   share: 100.25
-                  _links:
+                  "@controls":
                     self:
                       href: /expenses/5001/participants/
                     user:
                       href: /users/1
-                _links:
+                "@controls":
                   self:
                     href: /expenses/5001/participants/
                   add:
@@ -376,7 +376,7 @@ paths:
       tags:
       - Expenses
       parameters:
-      - $ref: '#/components/parameters/expense_id'
+      - $ref: '#/components/parameters/expense_uuid'
       requestBody:
         required: true
         content:
@@ -450,18 +450,18 @@ components:
       - name
       properties:
         id:
-          type: integer
+          type: string
         name:
           type: string
         description:
           type: string
-        _links:
+        "@controls":
           $ref: '#/components/schemas/Links'
       example:
         id: 101
         name: Roommates
         description: Shared apartment expenses
-        _links:
+        "@controls":
           self:
             href: /groups/101
           update:
@@ -483,18 +483,18 @@ components:
       - amount
       properties:
         id:
-          type: integer
+          type: string
         amount:
           type: number
         description:
           type: string
-        _links:
+        "@controls":
           $ref: '#/components/schemas/Links'
       example:
         id: 5001
         amount: 200.5
         description: March Electricity Bill
-        _links:
+        "@controls":
           self:
             href: /expenses/5001
           update:
@@ -509,22 +509,22 @@ components:
           group:
             href: /groups/101
   parameters:
-    expense_id:
-      name: expense_id
+    expense_uuid:
+      name: expense_uuid
       in: path
       required: true
       schema:
-        type: integer
-    group_id:
-      name: group_id
+        type: string
+    group_uuid:
+      name: group_uuid
       in: path
       required: true
       schema:
-        type: integer
-    user_id:
-      name: user_id
+        type: string
+    user_uuid:
+      name: user_uuid
       in: path
       required: true
       schema:
-        type: integer
+        type: string
 
