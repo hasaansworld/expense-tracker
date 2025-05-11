@@ -4,6 +4,8 @@ import RootLayout from "./components/RootLayout";
 import Signup from "./pages/Signup";
 import "./App.css";
 import Home from "./pages/Home";
+import CreateGroup from "./pages/CreateGroup";
+import Group from "./pages/Group";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +21,22 @@ const router = createBrowserRouter([
     element: (
       <RootLayout requireAuth={false}>
         <Signup />
+      </RootLayout>
+    ),
+  },
+  {
+    path: "/groups/create",
+    element: (
+      <RootLayout requireAuth={false}>
+        <CreateGroup />
+      </RootLayout>
+    ),
+  },
+  {
+    path: "/groups/:groupId",
+    element: (
+      <RootLayout requireAuth={false}>
+        <Group />
       </RootLayout>
     ),
   },

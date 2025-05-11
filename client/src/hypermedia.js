@@ -92,7 +92,6 @@ class HypermediaClient {
     const categoryKey = `${resourceType} Endpoints`;
     method = method.toUpperCase();
 
-    console.log(this.routes);
     // Find the category
     if (!this.routes[categoryKey]) {
       return null;
@@ -356,7 +355,6 @@ class HypermediaClient {
       !this.currentResource["@controls"] ||
       !this.currentResource["@controls"][controlName]
     ) {
-      console.log(this.currentResource);
       throw new Error(`Control "${controlName}" not found in current resource`);
     }
 

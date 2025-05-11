@@ -27,7 +27,7 @@ export default function Input({
       {label && (
         <label
           htmlFor={id}
-          className="block mb-2 capitalize text-sm font-medium text-gray-700 dark:text-gray-300 text-start"
+          className="block mb-2 capitalize text-sm font-medium text-gray-700 text-start"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -43,7 +43,7 @@ export default function Input({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
-          className={`w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:outline-none ${
+          className={`w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none ${
             isFocused ? "ring-2 ring-blue-500 border-blue-500" : ""
           }`}
           onFocus={() => setIsFocused(true)}
@@ -55,7 +55,7 @@ export default function Input({
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 dark:text-gray-400"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
             tabIndex="-1"
           >
             {inputType === "password" ? (

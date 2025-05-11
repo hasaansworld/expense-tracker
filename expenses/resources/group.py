@@ -84,7 +84,7 @@ class GroupCollection(Resource):
         cache.delete("groups")
 
         response = MasonBuilder(**group.serialize())
-        for name, props in build_group_controls(group.id).items():
+        for name, props in build_group_controls(group.uuid).items():
             response.add_control(name, **props)
 
         return response, 201
@@ -121,7 +121,7 @@ class GroupItem(Resource):
         cache.delete(f"groups/{group.uuid}/members")
 
         response = MasonBuilder(**group.serialize())
-        for name, props in build_group_controls(group.id).items():
+        for name, props in build_group_controls(group.uuid).items():
             response.add_control(name, **props)
 
         return response, 200

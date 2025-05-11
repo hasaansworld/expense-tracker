@@ -84,7 +84,7 @@ class UserCollection(Resource):
 
         res = MasonBuilder(**user.serialize())
         res["api_key"] = api_key
-        for name, props in build_user_controls(user.id).items():
+        for name, props in build_user_controls(user.uuid).items():
             res.add_control(name, **props)
 
         return res, 201
@@ -97,7 +97,7 @@ class UserItem(Resource):
     def get(self, user):
         """Get user details"""
         res = MasonBuilder(**user.serialize())
-        for name, props in build_user_controls(user.id).items():
+        for name, props in build_user_controls(user.uuid).items():
             res.add_control(name, **props)
         return res, 200
 
@@ -122,7 +122,7 @@ class UserItem(Resource):
         cache.delete("users")
 
         res = MasonBuilder(**user.serialize())
-        for name, props in build_user_controls(user.id).items():
+        for name, props in build_user_controls(user.uuid).items():
             res.add_control(name, **props)
 
         return res, 200
