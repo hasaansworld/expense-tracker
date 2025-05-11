@@ -35,6 +35,15 @@ class TestGroupEndpoints:
         assert len(data["groups"]) == 1
         assert data["groups"][0]["name"] == "Test Group"
 
+        # ✅ Hypermedia check
+        assert "@controls" in data
+        assert "create" in data["@controls"]
+        assert "self" in data["@controls"]
+        assert "@controls" in data["groups"][0]
+        assert "self" in data["groups"][0]["@controls"]
+        assert "members" in data["groups"][0]["@controls"]
+        assert "expenses" in data["groups"][0]["@controls"]
+
     def test_create_group_authenticated(self, client):
         """Test POST /api/groups/ with valid auth - Should create a new group"""
         # Create a user first
@@ -49,8 +58,14 @@ class TestGroupEndpoints:
         )
         assert response.status_code == 201
         data = json.loads(response.data)
-        assert data["group"]["name"] == "New Group"
-        assert data["group"]["description"] == "Test description"
+        assert data["name"] == "New Group"
+        assert data["description"] == "Test description"
+
+        # Hypermedia check
+        assert "@controls" in data
+        assert "self" in data["@controls"]
+        assert "members" in data["@controls"]
+        assert "expenses" in data["@controls"]
 
         # Verify the creator was automatically added as admin
         group = Group.query.first()
@@ -92,13 +107,21 @@ class TestGroupEndpoints:
             data=json.dumps(group_data),
             headers=get_auth_headers(api_key),
         )
-        group_uuid = json.loads(response.data)["group"]["id"]
+        group_uuid = json.loads(response.data)["id"]
 
         # Get group details
         response = client.get(f"/api/groups/{group_uuid}")
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert data["group"]["name"] == "Test Group"
+        assert data["name"] == "Test Group"
+
+        # Hypermedia check
+        assert "@controls" in data
+        assert "self" in data["@controls"]
+        assert "update" in data["@controls"]
+        assert "delete" in data["@controls"]
+        assert "members" in data["@controls"]
+        assert "expenses" in data["@controls"]
 
     def test_update_group_as_admin(self, client):
         """Test PUT /api/groups/<group_id> as admin - Should update group info"""
@@ -112,7 +135,7 @@ class TestGroupEndpoints:
             data=json.dumps(group_data),
             headers=get_auth_headers(api_key),
         )
-        group_uuid = json.loads(response.data)["group"]["id"]
+        group_uuid = json.loads(response.data)["id"]
 
         # Update group
         update_data = {"name": "Updated Group", "description": "New description"}
@@ -123,8 +146,12 @@ class TestGroupEndpoints:
         )
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert data["group"]["name"] == "Updated Group"
-        assert data["group"]["description"] == "New description"
+        assert data["name"] == "Updated Group"
+        assert data["description"] == "New description"
+
+        #  Hypermedia check
+        assert "@controls" in data
+        assert "self" in data["@controls"]
 
     def test_delete_group_as_admin(self, client):
         """Test DELETE /api/groups/<group_id> as admin - Should delete group"""
@@ -141,7 +168,7 @@ class TestGroupEndpoints:
             data=json.dumps(group_data),
             headers=get_auth_headers(api_key),
         )
-        group_uuid = json.loads(response.data)["group"]["id"]
+        group_uuid = json.loads(response.data)["id"]
 
         # Delete group
         response = client.delete(

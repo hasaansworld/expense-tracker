@@ -153,3 +153,50 @@ class ExpenseConverter(BaseConverter):
             str: UUID string for the URL
         """
         return value.uuid if isinstance(value, Expense) else str(value)
+
+
+def make_links(resource: str, resource_id: int, extras: dict = None, full_path: str = None) -> dict:
+    """
+    Generate hypermedia _links for a REST resource.
+
+    Args:
+        resource (str): The base resource path (e.g. 'groups', 'expenses').
+        resource_id (int): The ID of the resource.
+        extras (dict): Additional custom links to merge.
+
+    Returns:
+        dict: A dictionary with standard and custom _links.
+    """
+    path = full_path or f"/{resource}/{resource_id}"
+    links = {
+        "self": {"href": path},
+        "update": {"href": path, "method": "PUT"},
+        "delete": {"href": path, "method": "DELETE"}
+    }
+    if extras:
+        links.update(extras)
+    return links
+
+
+class MasonBuilder(dict):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def add_namespace(self, ns, uri):
+        self.setdefault("@namespaces", {})
+        self["@namespaces"][ns] = {"name": uri}
+
+    def add_control(self, ctrl_name, href, **kwargs):
+        self.setdefault("@controls", {})
+        self["@controls"][ctrl_name] = {"href": href, **kwargs}
+
+    def add_error(self, title, details):
+        self["@error"] = {
+            "@message": title,
+            "@messages": [details]
+        }
+
+    def add_controls_bulk(self, controls: dict):
+        for name, params in controls.items():
+            self.add_control(name, **params)
+
