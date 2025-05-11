@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import RootLayout from "./components/RootLayout";
 import Signup from "./pages/Signup";
 import "./App.css";
+import Home from "./pages/Home";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <RootLayout>
-        <div>Hello World</div>
+        <Home />
       </RootLayout>
     ),
   },

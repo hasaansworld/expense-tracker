@@ -16,7 +16,29 @@ from flask_cors import CORS
 db = SQLAlchemy()
 cache = Cache()
 
-
+available_routes = {
+        "User Endpoints": [
+            {"method": "GET", "url": "/api/users/", "description": "Get all users"},
+            {"method": "POST", "url": "/api/users/", "description": "Create a new user"},
+            {"method": "GET", "url": "/api/users/<user_id>", "description": "Get a specific user"},
+            {"method": "PUT", "url": "/api/users/<user_id>", "description": "Update a user"},
+            {"method": "DELETE", "url": "/api/users/<user_id>", "description": "Delete a user"}
+        ],
+        "Group Endpoints": [
+            {"method": "GET", "url": "/api/groups/", "description": "Get all groups"},
+            {"method": "POST", "url": "/api/groups/", "description": "Create a new group"},
+            {"method": "GET", "url": "/api/groups/<group_id>", "description": "Get a specific group"},
+            {"method": "PUT", "url": "/api/groups/<group_id>", "description": "Update a group"},
+            {"method": "DELETE", "url": "/api/groups/<group_id>", "description": "Delete a group"}
+        ],
+        "Expense Endpoints": [
+            {"method": "GET", "url": "/api/groups/<group_id>/expenses/", "description": "Get all expenses in a group"},
+            {"method": "POST", "url": "/api/groups/<group_id>/expenses/", "description": "Create a new expense in a group"},
+            {"method": "GET", "url": "/api/expenses/<expense_id>", "description": "Get a specific expense"},
+            {"method": "PUT", "url": "/api/expenses/<expense_id>", "description": "Update an expense"},
+            {"method": "DELETE", "url": "/api/expenses/<expense_id>", "description": "Delete an expense"}
+        ]
+    }
 
 def handle_not_found(error):
     """
@@ -26,29 +48,7 @@ def handle_not_found(error):
     response_data = {
         "error": "Not Found",
         "message": "The requested URL was not found on the server.",
-        "available_routes": {
-            "User Endpoints": [
-                {"method": "GET", "url": "/api/users/", "description": "Get all users"},
-                {"method": "POST", "url": "/api/users/", "description": "Create a new user"},
-                {"method": "GET", "url": "/api/users/<user_id>", "description": "Get a specific user"},
-                {"method": "PUT", "url": "/api/users/<user_id>", "description": "Update a user"},
-                {"method": "DELETE", "url": "/api/users/<user_id>", "description": "Delete a user"}
-            ],
-            "Group Endpoints": [
-                {"method": "GET", "url": "/api/groups/", "description": "Get all groups"},
-                {"method": "POST", "url": "/api/groups/", "description": "Create a new group"},
-                {"method": "GET", "url": "/api/groups/<group_id>", "description": "Get a specific group"},
-                {"method": "PUT", "url": "/api/groups/<group_id>", "description": "Update a group"},
-                {"method": "DELETE", "url": "/api/groups/<group_id>", "description": "Delete a group"}
-            ],
-            "Expense Endpoints": [
-                {"method": "GET", "url": "/api/groups/<group_id>/expenses/", "description": "Get all expenses in a group"},
-                {"method": "POST", "url": "/api/groups/<group_id>/expenses/", "description": "Create a new expense in a group"},
-                {"method": "GET", "url": "/api/expenses/<expense_id>", "description": "Get a specific expense"},
-                {"method": "PUT", "url": "/api/expenses/<expense_id>", "description": "Update an expense"},
-                {"method": "DELETE", "url": "/api/expenses/<expense_id>", "description": "Delete an expense"}
-            ]
-        }
+        "available_routes": available_routes,
     }
 
     # Convert to JSON string with `ensure_ascii=False` to prevent escaping
@@ -177,7 +177,7 @@ def create_app(test_config=None):
 
 
     
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
     return app
 
 

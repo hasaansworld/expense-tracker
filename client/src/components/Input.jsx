@@ -27,7 +27,7 @@ export default function Input({
       {label && (
         <label
           htmlFor={id}
-          className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block mb-2 capitalize text-sm font-medium text-gray-700 dark:text-gray-300 text-start"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
