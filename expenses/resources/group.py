@@ -1,4 +1,4 @@
-"""Group resources module for the expenses API.
+"""Group resources module for the expenses API with Mason hypermedia support.
 
 This module defines the RESTful resources for Group objects, including
 collection and individual item endpoints with CRUD operations.
@@ -11,8 +11,25 @@ from flask_restful import Resource
 from jsonschema import validate, ValidationError
 from werkzeug.exceptions import BadRequest, UnsupportedMediaType, Forbidden
 from expenses import cache
-from expenses.utils import require_api_key
+from expenses.utils import require_api_key, MasonBuilder  # ⬅️ Replaced make_links with MasonBuilder
 from expenses.models import db, Group, GroupMember
+
+
+def build_group_controls(group_id):
+    return {
+        "self": {"href": f"/groups/{group_id}"},
+        "update": {
+            "href": f"/groups/{group_id}",
+            "method": "PUT",
+            "encoding": "json",
+            "schema": Group.get_schema()
+        },
+        "delete": {"href": f"/groups/{group_id}", "method": "DELETE"},
+        "members": {"href": f"/groups/{group_id}/members/", "method": "GET"},
+        "expenses": {"href": f"/groups/{group_id}/expenses/", "method": "GET"}
+    }
+
+
 
 
 class GroupCollection(Resource):
@@ -20,69 +37,57 @@ class GroupCollection(Resource):
 
     @cache.cached(timeout=30)
     def get(self):
-            """Get all groups"""
-            groups = Group.query.all()
-            return {
-                "groups": [
-                    {
-                        **group.serialize(short_form=True),
-                        "_links": {
-                            "self": f"/groups/{group.id}",
-                            "members": {
-                                "href": f"/groups/{group.id}/members/",
-                                "method": "GET"
-                            },
-                            "expenses": {
-                                "href": f"/groups/{group.id}/expenses/",
-                                "method": "GET"
-                            }
-                        }
-                    } for group in groups
-                ]
-            }, 200
+        """Get all groups"""
+        groups = Group.query.all()
+        return {
+            "groups": [
+                MasonBuilder(
+                    **group.serialize(short_form=True),
+                    **{"@controls": build_group_controls(group.id)}
+                )
+                for group in groups
+            ],
+            "@controls": {
+                "self": {"href": "/groups/"},
+                "create": {
+                    "href": "/groups/",
+                    "method": "POST",
+                    "encoding": "json",
+                    "schema": Group.get_schema()
+                }
+            }
+        }, 200
 
     @require_api_key
     def post(self):
         """Create a new group"""
+        # g.user_id = 1
         if not request.json:
             raise UnsupportedMediaType("Request must be JSON")
 
-        # Validate required fields
         try:
             validate(instance=request.json, schema=Group.get_schema())
         except ValidationError as e:
             raise BadRequest(f"Validation error: {e.message}") from e
 
-        # Create new group
         group = Group(created_by=g.user_id)
         group.deserialize(request.json)
 
         db.session.add(group)
         db.session.flush()
 
-        # Add creator as a member with admin role
         member = GroupMember(user_id=g.user_id, group_id=group.id, role="admin")
         db.session.add(member)
 
         db.session.commit()
 
-        # Clear cache
         cache.delete("groups")
 
-        return {
-            "group": group.serialize(),
-            "_links": {
-                "self": f"/groups/{group.id}",
-                "members": {
-                    "href": f"/groups/{group.id}/members/",
-                    "method": "GET"
-                },
-                "expenses": {
-                    "href": f"/groups/{group.id}/expenses/",
-                    "method": "GET"
-                }
-            }
-        }, 201
+        response = MasonBuilder(**group.serialize())
+        for name, props in build_group_controls(group.id).items():
+            response.add_control(name, **props)
+
+        return response, 201
 
 
 class GroupItem(Resource):
@@ -91,33 +96,14 @@ class GroupItem(Resource):
     @cache.cached(timeout=30)
     def get(self, group):
         """Get group details"""
-        return {
-            **group.serialize(),
-            "_links": {
-                "self": f"/groups/{group.id}",
-                "members": {
-                    "href": f"/groups/{group.id}/members/",
-                    "method": "GET"
-                },
-                "expenses": {
-                    "href": f"/groups/{group.id}/expenses/",
-                    "method": "GET"
-                },
-                "update": {
-                    "href": f"/groups/{group.id}",
-                    "method": "PUT"
-                },
-                "delete": {
-                    "href": f"/groups/{group.id}",
-                    "method": "DELETE"
-                }
-            }
-        }, 200
+        response = MasonBuilder(**group.serialize())
+        for name, props in build_group_controls(group.id).items():
+            response.add_control(name, **props)
+        return response, 200
 
     @require_api_key
     def put(self, group):
         """Update group details"""
-        # Check if user is admin
         member = GroupMember.query.filter_by(
             user_id=g.user_id, group_id=group.id
         ).first()
@@ -130,22 +116,19 @@ class GroupItem(Resource):
         group.deserialize(request.json)
         db.session.commit()
 
-        # Clear cache
         cache.delete(f"groups/{group.uuid}")
         cache.delete("groups")
         cache.delete(f"groups/{group.uuid}/members")
 
-        return {
-            "group": group.serialize(),
-            "_links": {
-                "self": f"/groups/{group.id}"
-            }
-        }, 200
+        response = MasonBuilder(**group.serialize())
+        for name, props in build_group_controls(group.id).items():
+            response.add_control(name, **props)
+
+        return response, 200
 
     @require_api_key
     def delete(self, group):
         """Delete group"""
-        # Check if user is admin
         member = GroupMember.query.filter_by(
             user_id=g.user_id, group_id=group.id
         ).first()
@@ -155,7 +138,6 @@ class GroupItem(Resource):
         db.session.delete(group)
         db.session.commit()
 
-        # Clear cache
         cache.delete(f"groups/{group.uuid}")
         cache.delete("groups")
         cache.delete(f"groups/{group.uuid}/members")

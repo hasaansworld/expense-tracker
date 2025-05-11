@@ -176,7 +176,7 @@ The API tests verify:
 - Error handling
 - Data validation
 
-
+<!--  
 
 
 # Hypermedia Implementation
@@ -337,6 +337,269 @@ Hypermedia links are generated dynamically inside each `get()` or `post()` metho
   }
 }
 ```
+-->
+
+# Hypermedia Implementation
+
+This API implements **HATEOAS (Hypermedia as the Engine of Application State)** using the **Mason hypermedia format**. All responses contain `@controls` blocks that describe available actions, methods, schemas, and navigational affordances. This makes the API **self-documenting, discoverable, and REST-compliant**.
+
+### Design Goal
+
+Allow API clients to explore the state and possible transitions of each resource without relying on hardcoded endpoints or external documentation.
+
+---
+
+## Endpoints Enhanced with Hypermedia
+
+Each resource now includes a `@controls` object in its JSON response, showing available operations (`self`, `update`, `delete`, etc.) and related sub-resources.
+
+---
+
+### `/groups/` – `GroupCollection`
+
+Returns a list of groups with:
+
+```json
+{
+  "groups": [
+    {
+      "id": "group-uuid",
+      "name": "Travel Fund",
+      "description": "Shared expenses for vacation",
+      "@controls": {
+        "self": { "href": "/groups/group-uuid" },
+        "update": { "href": "/groups/group-uuid", "method": "PUT", "encoding": "json" },
+        "delete": { "href": "/groups/group-uuid", "method": "DELETE" },
+        "members": { "href": "/groups/group-uuid/members/", "method": "GET" },
+        "expenses": { "href": "/groups/group-uuid/expenses/", "method": "GET" }
+      }
+    }
+  ],
+  "@controls": {
+    "self": { "href": "/groups/" },
+    "create": {
+      "href": "/groups/",
+      "method": "POST",
+      "encoding": "json",
+      "schema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### `/groups/<group_id>/members/` – `GroupMemberCollection`
+
+Returns members of a group:
+
+```json
+{
+  "members": [
+    {
+      "id": "member-uuid",
+      "user_id": "user-uuid",
+      "role": "admin",
+      "joined_at": "2025-05-10T11:01:51.801722",
+      "user_name": "Alice",
+      "@controls": {
+        "self": { "href": "/groups/group-uuid/members/user-uuid" },
+        "delete": { "href": "/groups/group-uuid/members/user-uuid", "method": "DELETE" },
+        "user": { "href": "/users/user-uuid", "method": "GET" }
+      }
+    }
+  ],
+  "@controls": {
+    "self": { "href": "/groups/group-uuid/members/" },
+    "add": {
+      "href": "/groups/group-uuid/members/",
+      "method": "POST",
+      "encoding": "json",
+      "schema": {
+        "type": "object",
+        "required": ["user_id"],
+        "properties": {
+          "user_id": { "type": "string" },
+          "role": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### `/groups/<group_id>/expenses/` – `ExpenseCollection`
+
+Returns expenses in a group:
+
+```json
+{
+  "expenses": [
+    {
+      "id": "expense-uuid",
+      "description": "Dinner",
+      "amount": 90.00,
+      "@controls": {
+        "self": { "href": "/expenses/expense-uuid" },
+        "update": { "href": "/expenses/expense-uuid", "method": "PUT" },
+        "delete": { "href": "/expenses/expense-uuid", "method": "DELETE" },
+        "participants": { "href": "/expenses/expense-uuid/participants/", "method": "GET" }
+      }
+    }
+  ],
+  "@controls": {
+    "self": { "href": "/groups/group-uuid/expenses/" },
+    "create": {
+      "href": "/groups/group-uuid/expenses/",
+      "method": "POST",
+      "encoding": "json",
+      "schema": {
+        "type": "object",
+        "required": ["amount", "description"],
+        "properties": {
+          "amount": { "type": "number", "minimum": 0 },
+          "description": { "type": "string" },
+          "category": { "type": "string" },
+          "participants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["user_id", "share"],
+              "properties": {
+                "user_id": { "type": "string" },
+                "share": { "type": "number" },
+                "paid": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### `/expenses/<expense_id>/participants/` – `ExpenseParticipantCollection`
+
+```json
+{
+  "participants": [
+    {
+      "user_id": "user-uuid",
+      "share": 30.00,
+      "paid": 50.00,
+      "balance": 20.00,
+      "user_name": "Alice",
+      "@controls": {
+        "user": { "href": "/users/user-uuid", "method": "GET" }
+      }
+    }
+  ],
+  "@controls": {
+    "self": { "href": "/expenses/expense-uuid/participants/" },
+    "add": {
+      "href": "/expenses/expense-uuid/participants/",
+      "method": "POST",
+      "encoding": "json",
+      "schema": {
+        "type": "object",
+        "required": ["user_id", "share"],
+        "properties": {
+          "user_id": { "type": "string" },
+          "share": { "type": "number", "minimum": 0 },
+          "paid": { "type": "number", "minimum": 0 }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### `/users/` – `UserCollection`
+
+```json
+{
+  "users": [
+    {
+      "id": "user-uuid",
+      "name": "Alice",
+      "email": "alice@example.com",
+      "@controls": {
+        "self": { "href": "/users/user-uuid" },
+        "update": { "href": "/users/user-uuid", "method": "PUT", "encoding": "json" }
+      }
+    }
+  ],
+  "@controls": {
+    "self": { "href": "/users/" },
+    "create": {
+      "href": "/users/",
+      "method": "POST",
+      "encoding": "json",
+      "schema": {
+        "type": "object",
+        "required": ["name", "email", "password_hash"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "password_hash": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### `/users/<user_id>` – `UserItem`
+
+```json
+{
+  "id": "user-uuid",
+  "name": "Alice",
+  "email": "alice@example.com",
+  "@controls": {
+    "self": { "href": "/users/user-uuid" },
+    "update": {
+      "href": "/users/user-uuid",
+      "method": "PUT",
+      "encoding": "json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## How It’s Implemented
+
+Hypermedia controls are generated using a reusable `MasonBuilder` utility class and `build_<resource>_controls()` helpers in each resource. These controls include:
+
+- **`self`**: canonical link to the resource
+- **`update`, `delete`**: if applicable
+- **`schema`**: JSON schema describing required fields and types
+- **`method` and `encoding`**: for correct HTTP method and content type declaration
 
 
 ## License
