@@ -7,7 +7,22 @@ from werkzeug.exceptions import BadRequest, UnsupportedMediaType, Forbidden
 
 from expenses import cache
 from expenses.models import db, User, GroupMember, Expense, ExpenseParticipant
-from expenses.utils import require_api_key, make_links
+from expenses.utils import require_api_key, MasonBuilder
+
+
+def build_expense_controls(expense):
+    return {
+        "self": {"href": f"/expenses/{expense.id}"},
+        "update": {
+            "href": f"/expenses/{expense.id}",
+            "method": "PUT",
+            "encoding": "json",
+            "schema": Expense.get_schema()
+        },
+        "delete": {"href": f"/expenses/{expense.id}", "method": "DELETE"},
+        "participants": {"href": f"/expenses/{expense.id}/participants/", "method": "GET"},
+        "group": {"href": f"/groups/{expense.group_id}", "method": "GET"}
+    }
 
 
 class ExpenseCollection(Resource):
@@ -17,18 +32,22 @@ class ExpenseCollection(Resource):
     def get(self, group):
         """Get all expenses in a group"""
         expenses = Expense.query.filter_by(group_id=group.id).all()
-        return {
-            "expenses": [
-                {
-                    "expense": expense.serialize(),
-                    "_links": make_links("expenses", expense.id, {}, full_path=f"/api/groups/{group.id}/expenses/{expense.id}")
-                }
-                for expense in expenses
-            ]
-        }, 200
+        res = MasonBuilder()
+        res["expenses"] = []
+
+        for expense in expenses:
+            e_doc = MasonBuilder(**expense.serialize())
+            for name, props in build_expense_controls(expense).items():
+                e_doc.add_control(name, **props)
+            res["expenses"].append(e_doc)
+
+        res.add_control("self", f"/groups/{group.id}/expenses/")
+        res.add_control("create", f"/groups/{group.id}/expenses/", method="POST", encoding="json", schema=Expense.get_schema())
+        return res, 200
 
     @require_api_key
     def post(self, group):
+        # g.user_id = 1
         """Create a new expense in a group"""
         member = GroupMember.query.filter_by(user_id=g.user_id, group_id=group.id).first()
         if not member:
@@ -84,15 +103,11 @@ class ExpenseCollection(Resource):
         db.session.commit()
         cache.delete(f"groups/{group.uuid}/expenses")
 
-        return {
-            "expense": expense.serialize(),
-            "_links": make_links("expenses", expense.id, {
-                "participants": {
-                    "href": f"/expenses/{expense.id}/participants/",
-                    "method": "GET"
-                }
-            }, full_path=f"/expenses/{expense.id}")
-        }, 201
+        res = MasonBuilder(**expense.serialize())
+        for name, props in build_expense_controls(expense).items():
+            res.add_control(name, **props)
+
+        return res, 201
 
 
 class ExpenseItem(Resource):
@@ -101,10 +116,10 @@ class ExpenseItem(Resource):
     @cache.cached(timeout=30)
     def get(self, expense):
         """Get expense details"""
-        return {
-            "expense": expense.serialize(),
-            "_links": make_links("expenses", expense.id, {}, full_path=f"/api/groups/{expense.group_id}/expenses/{expense.id}")
-        }, 200
+        res = MasonBuilder(**expense.serialize())
+        for name, props in build_expense_controls(expense).items():
+            res.add_control(name, **props)
+        return res, 200
 
     @require_api_key
     def put(self, expense):
@@ -115,19 +130,10 @@ class ExpenseItem(Resource):
         if not request.json:
             raise UnsupportedMediaType("Request must be JSON")
 
-        if "amount" in request.json or "description" in request.json:
-            update_schema = {
-                "type": "object",
-                "properties": {
-                    "amount": {"type": "number", "minimum": 0},
-                    "description": {"type": "string"},
-                },
-            }
-
-            try:
-                validate(instance=request.json, schema=update_schema)
-            except ValidationError as e:
-                raise BadRequest(f"Validation error: {e.message}") from e
+        try:
+            validate(instance=request.json, schema=Expense.get_schema())
+        except ValidationError as e:
+            raise BadRequest(f"Validation error: {e.message}") from e
 
         expense.deserialize(request.json)
 
@@ -179,10 +185,10 @@ class ExpenseItem(Resource):
         cache.delete(f"expenses/{expense.uuid}")
         cache.delete(f"groups/{expense.group.uuid}/expenses")
 
-        return {
-            "expense": expense.serialize(),
-            "_links": make_links("expenses", expense.id, {}, full_path=f"/api/groups/{expense.group_id}/expenses/{expense.id}")
-        }, 200
+        res = MasonBuilder(**expense.serialize())
+        for name, props in build_expense_controls(expense).items():
+            res.add_control(name, **props)
+        return res, 200
 
     @require_api_key
     def delete(self, expense):
@@ -209,17 +215,16 @@ class ExpenseParticipantCollection(Resource):
     def get(self, expense):
         """Get all participants in an expense"""
         participants = ExpenseParticipant.query.filter_by(expense_id=expense.id).all()
-        return {
-            "participants": [
-                {
-                    **participant.serialize(),
-                    "_links": make_links("expenses", expense.id, {
-                        "user": {"href": f"/users/{participant.user_id}", "method": "GET"}
-                    }, full_path=f"/expenses/{expense.id}/participants/")
-                }
-                for participant in participants
-            ],
-            "_links": make_links("expenses", expense.id, {
-                "add": {"href": f"/expenses/{expense.id}/participants/", "method": "POST"}
-            }, full_path=f"/expenses/{expense.id}/participants/")
-        }, 200
+
+        res = MasonBuilder()
+        res["participants"] = []
+
+        for participant in participants:
+            p_doc = MasonBuilder(**participant.serialize(short_form=True))
+            p_doc.add_control("user", f"/users/{participant.user_id}", method="GET")
+            res["participants"].append(p_doc)
+
+        res.add_control("self", f"/expenses/{expense.id}/participants/")
+        res.add_control("add", f"/expenses/{expense.id}/participants/", method="POST", encoding="json", schema=ExpenseParticipant.get_schema())
+
+        return res, 200

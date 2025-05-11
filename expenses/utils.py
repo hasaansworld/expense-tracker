@@ -176,3 +176,27 @@ def make_links(resource: str, resource_id: int, extras: dict = None, full_path: 
     if extras:
         links.update(extras)
     return links
+
+
+class MasonBuilder(dict):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def add_namespace(self, ns, uri):
+        self.setdefault("@namespaces", {})
+        self["@namespaces"][ns] = {"name": uri}
+
+    def add_control(self, ctrl_name, href, **kwargs):
+        self.setdefault("@controls", {})
+        self["@controls"][ctrl_name] = {"href": href, **kwargs}
+
+    def add_error(self, title, details):
+        self["@error"] = {
+            "@message": title,
+            "@messages": [details]
+        }
+
+    def add_controls_bulk(self, controls: dict):
+        for name, params in controls.items():
+            self.add_control(name, **params)
+

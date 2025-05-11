@@ -11,8 +11,35 @@ from werkzeug.exceptions import (
 )
 
 from expenses import cache
-from expenses.utils import require_api_key, make_links
+from expenses.utils import require_api_key, MasonBuilder
 from expenses.models import db, User, GroupMember
+
+
+def build_member_controls(group_id, user_id):
+    return {
+        "self": {"href": f"/groups/{group_id}/members/{user_id}"},
+        "delete": {"href": f"/groups/{group_id}/members/{user_id}", "method": "DELETE"},
+        "user": {"href": f"/users/{user_id}", "method": "GET"}
+    }
+
+
+def build_member_collection_controls(group_id):
+    return {
+        "self": {"href": f"/groups/{group_id}/members/"},
+        "add": {
+            "href": f"/groups/{group_id}/members/",
+            "method": "POST",
+            "encoding": "json",
+            "schema": {
+                "type": "object",
+                "required": ["user_id"],
+                "properties": {
+                    "user_id": {"type": "string"},
+                    "role": {"type": "string"}
+                }
+            }
+        }
+    }
 
 
 class GroupMemberCollection(Resource):
@@ -21,26 +48,20 @@ class GroupMemberCollection(Resource):
     @cache.cached(timeout=30)
     def get(self, group):
         """Get all members of a group"""
+        res = MasonBuilder()
+        res["members"] = []
+
         members = GroupMember.query.filter_by(group_id=group.id).all()
-        return {
-            "members": [
-                {
-                    **member.serialize(),
-                    "_links": make_links("members", member.user_id, {
-                        "user": {
-                            "href": f"/users/{member.user_id}",
-                            "method": "GET"
-                        }
-                    }, full_path=f"/groups/{group.id}/members/{member.user_id}")
-                } for member in members
-            ],
-            "_links": make_links("members", group.id, {
-                "add": {
-                    "href": f"/groups/{group.id}/members/",
-                    "method": "POST"
-                }
-            }, full_path=f"/groups/{group.id}/members/")
-        }, 200
+        for member in members:
+            member_data = MasonBuilder(**member.serialize())
+            for name, props in build_member_controls(group.id, member.user_id).items():
+                member_data.add_control(name, **props)
+            res["members"].append(member_data)
+
+        for name, props in build_member_collection_controls(group.id).items():
+            res.add_control(name, **props)
+
+        return res, 200
 
     @require_api_key
     def post(self, group):
@@ -75,10 +96,11 @@ class GroupMemberCollection(Resource):
         cache.delete(f"groups/{group.uuid}/members")
         cache.delete(f"groups/{group.uuid}")
 
-        return {
-            "member": member.serialize(),
-            "_links": make_links("members", user.id, {}, full_path=f"/groups/{group.id}/members/{user.id}")
-        }, 201
+        res = MasonBuilder(**member.serialize())
+        for name, props in build_member_controls(group.id, user.id).items():
+            res.add_control(name, **props)
+
+        return res, 201
 
 
 class GroupMemberItem(Resource):
