@@ -652,12 +652,10 @@ Copy the URL shown in your terminal (usually `http://localhost:5173/`) and paste
 ## Client Structure
 Here's a breakdown of the main parts:
 
-### 📂 `public/`
+#### 📂 `public/`
 This folder contains static files like images, icons, or other assets that don't need to be processed by the app. These are served directly to the browser.
 
----
-
-### 📂 `src/`
+#### 📂 `src/`
 The heart of the frontend code. Everything inside here is part of the actual React app.
 
 #### 📁 `components/`
@@ -675,18 +673,16 @@ Each file in this folder represents a full page or route in the application. Exa
 - `Signup.jsx` – A page to register new users.
 - `CreateGroup.jsx`, `AddMembers.jsx`, `CreateExpense.jsx`, etc. – Pages for managing groups and expenses.
 
----
-
-### 📄 `App.jsx`
+#### 📄 `App.jsx`
 The main component that ties the entire app together. It usually includes the router and wraps all pages.
 
-### 📄 `main.jsx`
+#### 📄 `main.jsx`
 The entry point where the React app is mounted to the HTML DOM.
 
-### 📄 `App.css`
+#### 📄 `App.css`
 Global styles for the entire application.
 
-### 📄 `hypermedia.js`
+#### 📄 `hypermedia.js`
 A JavaScript utility file – likely contains logic to support `HypermediaForm.jsx`.
 
 ---
