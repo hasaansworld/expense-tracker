@@ -1,11 +1,11 @@
 @import "tailwindcss";
-
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 #root {
   margin: 0;
   text-align: center;
 }
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", "Inter", sans-serif;
   background-color: white;
   color: #111;
   box-sizing: border-box;

@@ -35,7 +35,6 @@ def build_group_controls(group_id):
 class GroupCollection(Resource):
     """Resource for collection of Group objects"""
 
-    @cache.cached(timeout=30)
     def get(self):
         """Get all groups"""
         groups = Group.query.all()

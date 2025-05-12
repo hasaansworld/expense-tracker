@@ -70,7 +70,7 @@ const HypermediaForm = ({
       <div className="pt-2">
         <button
           type="submit"
-          className="w-full px-4 py-2 font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full px-4 py-2 font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           disabled={loading}
         >
           {loading ? "Processing..." : buttonText}

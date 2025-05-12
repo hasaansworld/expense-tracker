@@ -13,6 +13,8 @@ export default function Group() {
   const [expenses, setExpenses] = useState([]);
   const [expenseActions, setExpenseActions] = useState([]);
   const [settledMembers, setSettledMembers] = useState([]);
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogError, setDialogError] = useState("");
 
   const getActions = (response, setActions) => {
     const ctrls = [];
@@ -158,6 +160,19 @@ export default function Group() {
     return balances;
   };
 
+  const deleteGroup = async () => {
+    try {
+      await client.navigateToRoot();
+      await client.executeResourceOperation("Group", "DELETE", {
+        group_id: groupId,
+      });
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      setDialogError(error.message);
+    }
+  };
+
   useEffect(() => {
     async function navigateHypermedia() {
       // Initialize and load routes
@@ -232,15 +247,15 @@ export default function Group() {
           <h1 className="text-3xl font-medium capitalize">{group.name}</h1>
         </div>
 
-        <div className="flex items-center gap-8 my-8">
-          <h1 className="text-lg font-semibold text-slate-500">Expenses</h1>
+        <h1 className="text-lg font-semibold text-slate-500 mt-8">Expenses</h1>
+        <div className="flex items-center gap-8 mb-8">
           {expenseActions.map((action) => (
             <a
               key={action.name}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 font-bold capitalize text-white px-4 py-1 rounded-md m-2"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 font-medium capitalize text-white px-4 py-1 rounded-md my-2"
               href={`${window.location.pathname}/${action.name}-expense`}
             >
-              {action.name}
+              {action.name} Expense
             </a>
           ))}
         </div>
@@ -274,7 +289,7 @@ export default function Group() {
                     <div
                       className={`font-medium ${
                         participant.balance > 0
-                          ? "text-green-600"
+                          ? "text-green-500"
                           : participant.balance < 0
                           ? "text-orange-500"
                           : "text-gray-600"
@@ -307,17 +322,17 @@ export default function Group() {
         </div>
       </div>
       <div className="w-full flex flex-col items-start">
+        <h1 className="text-lg text-slate-500 font-semibold px-2">
+          Group Members
+        </h1>
         <div className="flex items-center gap-8 mb-4">
-          <h1 className="text-lg text-slate-500 font-semibold px-2">
-            Group Members
-          </h1>
           {memberActions.map((action) => (
             <a
               key={action.name}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 font-bold capitalize text-white px-4 py-1 rounded-md m-2"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 font-medium capitalize text-white px-4 py-1 rounded-md m-2"
               href={`${window.location.pathname}/${action.name}-members`}
             >
-              {action.name}
+              {action.name} Member
             </a>
           ))}
         </div>
@@ -371,7 +386,50 @@ export default function Group() {
             </div>
           );
         })}
+        <button
+          onClick={() => {
+            setShowDialog(true);
+            setDialogError("");
+          }}
+          className="mt-6 ml-2 px-3 py-1 rounded border border-red-200 hover:bg-red-100 text-red-500 font-medium transition-colors cursor-pointer"
+        >
+          Delete Group
+        </button>
       </div>
+
+      {showDialog && (
+        <div
+          onClick={() => setShowDialog(false)}
+          className="w-screen h-screen absolute top-0 left-0 z-50 bg-gray-700/50"
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center">
+            <Card className="w-[400px] bg-white mx-auto">
+              <h2 className="text-2xl font-semibold">Delete Group</h2>
+              <p className="mt-2 text-gray-500">
+                Are you sure you want to delete this group? This action cannot
+                be undone.
+              </p>
+              <div className="flex gap-2 justify-end mt-6">
+                <button
+                  onClick={() => setShowDialog(false)}
+                  className="flex-1 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded cursor-pointer font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={deleteGroup}
+                  className="flex-1 cursor-pointer px-3 py-1.5 font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  Delete Group
+                </button>
+              </div>
+              {dialogError && (
+                <div className="text-red-500 mt-4">{dialogError}</div>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
