@@ -6,6 +6,8 @@ import HypermediaForm from "../components/HypermediaForm";
 const client = new HypermediaClient();
 export default function Signup() {
   const [schema, setSchema] = useState({});
+  const [error, setError] = useState("");
+
   useEffect(() => {
     async function navigateHypermedia() {
       // Initialize and load routes
@@ -30,10 +32,14 @@ export default function Signup() {
       .join("");
     formData.password_hash = hashHex;
 
-    console.log("Form submitted with data:", formData);
-    const response = await client.executeControl("create", formData);
-    if (response) {
-      window.location.href = "/"; // Redirect to the main page
+    setError("");
+    try {
+      const response = await client.executeControl("create", formData);
+      if (response) {
+        window.location.href = "/"; // Redirect to the main page
+      }
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -49,6 +55,7 @@ export default function Signup() {
             className="mt-6"
           />
         )}
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </Card>
     </div>
   );

@@ -81,27 +81,51 @@ export default function CreateExpense() {
       // Create a copy of selected users to work with
       let participants = [...selectedUsers];
 
+      // Check if payer was originally in the participants list
+      const payerWasSelected = participants.includes(paidBy);
+
       // Make sure the payer is included in the participants
-      if (!participants.includes(paidBy)) {
+      if (!payerWasSelected) {
         participants.push(paidBy);
       }
 
-      // Calculate equal share for each participant (rounded to 2 decimal places)
-      const equalShare = parseFloat((amount / participants.length).toFixed(2));
+      // Calculate number of people who should share the expense
+      // If payer wasn't selected, only divide among the originally selected users
+      const sharingParticipantsCount = payerWasSelected
+        ? participants.length
+        : participants.length - 1;
+
+      // Calculate equal share for each participant who needs to pay (rounded to 2 decimal places)
+      const equalShare =
+        sharingParticipantsCount > 0
+          ? parseFloat((amount / sharingParticipantsCount).toFixed(2))
+          : amount;
 
       // Check if there's any rounding difference to account for
-      let totalShare = equalShare * participants.length;
+      let totalShare = equalShare * sharingParticipantsCount;
       let adjustment = parseFloat((amount - totalShare).toFixed(2));
 
       // Format the participants data
       const participantsData = participants.map((userId, index) => {
-        // Apply any rounding adjustment to the first participant to ensure total equals amount
+        const isPayer = userId === paidBy;
+
+        // Determine share based on whether this user is the payer and if they were originally selected
         let share = equalShare;
-        if (index === 0 && adjustment !== 0) {
+
+        // If this is the payer and they weren't originally selected, their share is 0
+        if (isPayer && !payerWasSelected) {
+          share = 0;
+        }
+
+        // Apply any rounding adjustment to the first non-zero share participant
+        if (
+          index === 0 &&
+          adjustment !== 0 &&
+          !(isPayer && !payerWasSelected)
+        ) {
           share = parseFloat((equalShare + adjustment).toFixed(2));
         }
 
-        const isPayer = userId === paidBy;
         return {
           user_id: userId,
           share: share,
@@ -115,18 +139,27 @@ export default function CreateExpense() {
         console.warn(
           `Share calculation rounding issue: ${totalShares} vs ${amount}`
         );
-        // Adjust the first participant's share to make it exactly match
-        participantsData[0].share = parseFloat(
-          (participantsData[0].share + (amount - totalShares)).toFixed(2)
+
+        // Find the first participant with non-zero share to adjust
+        const firstNonZeroIndex = participantsData.findIndex(
+          (p) => p.share > 0
         );
+        if (firstNonZeroIndex >= 0) {
+          participantsData[firstNonZeroIndex].share = parseFloat(
+            (
+              participantsData[firstNonZeroIndex].share +
+              (amount - totalShares)
+            ).toFixed(2)
+          );
+        }
       }
 
       // Format the final data to send to the backend
       const expenseData = {
         ...formData,
-        amount: amount, // Ensure amount is a string for the backend
+        amount: amount,
         group_id: groupId,
-        payer_id: paidBy, // Add the payer ID
+        payer_id: paidBy,
         participants: participantsData,
       };
 
