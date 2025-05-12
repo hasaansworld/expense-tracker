@@ -649,6 +649,42 @@ npm run dev
 
 Copy the URL shown in your terminal (usually `http://localhost:5173/`) and paste it into your browser to view the application.
 
+## Client Structure
+
+The `client` application is organized as follows:
+client/
+├── node_modules/ # Dependencies (auto-generated)
+├── public/ # Static assets served as-is
+├── src/ # Source code for the application
+│ ├── assets/ # Images, fonts, and other static resources
+│ ├── components/ # Reusable UI components
+│ │ ├── Card.jsx
+│ │ ├── Header.jsx
+│ │ ├── HypermediaForm.jsx
+│ │ ├── Input.jsx
+│ │ ├── ProtectedRoute.jsx
+│ │ └── RootLayout.jsx
+│ ├── pages/ # Route-based pages for the app
+│ │ ├── AddMembers.jsx
+│ │ ├── CreateExpense.jsx
+│ │ ├── CreateGroup.jsx
+│ │ ├── Group.jsx
+│ │ ├── Home.jsx
+│ │ └── Signup.jsx
+│ ├── App.css # Global styles
+│ ├── App.jsx # Main App component
+│ ├── hypermedia.js # Utility or configuration for hypermedia logic
+│ └── main.jsx # Entry point for the React app
+├── .env # Environment variables
+├── .env.example # Sample environment variables for reference
+├── .gitignore # Files and folders to ignore in Git
+├── eslint.config.js # ESLint configuration
+├── index.html # HTML entry point for the app
+├── package.json # Project metadata and scripts
+├── package-lock.json # Lockfile for exact dependency versions
+├── README.md # Project documentation
+└── vite.config.js # Vite configuration
+
 ## Features
 
 - User authentication (signup only)
