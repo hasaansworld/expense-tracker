@@ -602,6 +602,61 @@ Hypermedia controls are generated using a reusable `MasonBuilder` utility class 
 - **`method` and `encoding`**: for correct HTTP method and content type declaration
 
 
+
+## Client
+The client folder contains client-side application for Expense Tracker app, built with React.js and Vite. The application serves as a showcase for a subset of the REST api functionality.
+
+### Tech Stack
+
+- React.js: Frontend library for building user interfaces
+- Vite.js: Next-generation frontend tooling for faster development
+- Tailwind CSS: Utility-first CSS framework for rapid UI development
+- React Router: For handling application routing
+- Axios: Promise-based HTTP client for API requests
+
+### Getting Started
+Follow these steps to set up and run the client application locally:
+### Prerequisites
+
+- Node.js (v16.0.0 or higher)
+- npm (v7.0.0 or higher)
+
+### Installation
+
+Navigate to the client directory:
+```bash
+cd client
+```
+
+Install dependencies:
+```bash
+npm i
+```
+
+Set up environment variables:
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Open .env and update the API base URL 
+# Example: VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+Start the development server:
+```bash
+npm run dev
+```
+
+Copy the URL shown in your terminal (usually `http://localhost:5173/`) and paste it into your browser to view the application.
+
+### Features
+
+- User authentication (signup only)
+- Create groups
+- Add members to groups
+- Create expenses
+- Delete groups
+
 ## License
 
 This project is for educational purposes as part of the PWP course at the University of Oulu.
