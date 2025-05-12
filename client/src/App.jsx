@@ -6,6 +6,8 @@ import "./App.css";
 import Home from "./pages/Home";
 import CreateGroup from "./pages/CreateGroup";
 import Group from "./pages/Group";
+import AddMembers from "./pages/AddMembers";
+import CreateExpense from "./pages/CreateExpense";
 
 const router = createBrowserRouter([
   {
@@ -27,7 +29,7 @@ const router = createBrowserRouter([
   {
     path: "/groups/create",
     element: (
-      <RootLayout requireAuth={false}>
+      <RootLayout>
         <CreateGroup />
       </RootLayout>
     ),
@@ -35,8 +37,24 @@ const router = createBrowserRouter([
   {
     path: "/groups/:groupId",
     element: (
-      <RootLayout requireAuth={false}>
+      <RootLayout>
         <Group />
+      </RootLayout>
+    ),
+  },
+  {
+    path: "/groups/:groupId/add-members",
+    element: (
+      <RootLayout>
+        <AddMembers />
+      </RootLayout>
+    ),
+  },
+  {
+    path: "/groups/:groupId/create-expense",
+    element: (
+      <RootLayout>
+        <CreateExpense />
       </RootLayout>
     ),
   },

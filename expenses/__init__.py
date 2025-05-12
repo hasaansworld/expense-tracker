@@ -31,12 +31,22 @@ available_routes = {
             {"method": "PUT", "url": "/api/groups/<group_id>", "description": "Update a group"},
             {"method": "DELETE", "url": "/api/groups/<group_id>", "description": "Delete a group"}
         ],
+        "Group Member Endpoints": [
+            {"method": "GET", "url": "/api/groups/<group_id>/members/", "description": "Get all members in a group"},
+            {"method": "POST", "url": "/api/groups/<group_id>/members/", "description": "Add a new member to a group"},
+            {"method": "GET", "url": "/api/groups/<group_id>/members/<user_id>", "description": "Get a specific member in a group"},
+            {"method": "DELETE", "url": "/api/groups/<group_id>/members/<user_id>", "description": "Remove a member from a group"}
+        ],
         "Expense Endpoints": [
             {"method": "GET", "url": "/api/groups/<group_id>/expenses/", "description": "Get all expenses in a group"},
             {"method": "POST", "url": "/api/groups/<group_id>/expenses/", "description": "Create a new expense in a group"},
             {"method": "GET", "url": "/api/expenses/<expense_id>", "description": "Get a specific expense"},
             {"method": "PUT", "url": "/api/expenses/<expense_id>", "description": "Update an expense"},
             {"method": "DELETE", "url": "/api/expenses/<expense_id>", "description": "Delete an expense"}
+        ],
+        "Expense Participant Endpoints": [
+            {"method": "GET", "url": "/api/expenses/<expense_id>/participants/", "description": "Get all participants in an expense"},
+            {"method": "POST", "url": "/api/expenses/<expense_id>/participants/", "description": "Add a participant to an expense"}
         ]
     }
 

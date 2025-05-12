@@ -6,6 +6,7 @@ const HypermediaForm = ({
   onSubmit,
   initialData = {},
   buttonText = "Submit",
+  extraFields = "",
 }) => {
   const [formData, setFormData] = useState(initialData);
   const [loading, setLoading] = useState(false);
@@ -63,6 +64,8 @@ const HypermediaForm = ({
             />
           );
         })}
+
+      {extraFields}
 
       <div className="pt-2">
         <button

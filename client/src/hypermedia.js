@@ -148,7 +148,7 @@ class HypermediaClient {
     params = {},
     data = null
   ) {
-    const endpoint = this.getResourceEndpoint(resourceType, method, params);
+    let endpoint = this.getResourceEndpoint(resourceType, method, params);
     if (!endpoint) {
       throw new Error(
         `Endpoint not found for ${resourceType} with method ${method}`

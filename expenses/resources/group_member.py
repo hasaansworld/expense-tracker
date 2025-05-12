@@ -45,7 +45,6 @@ def build_member_collection_controls(group_id):
 class GroupMemberCollection(Resource):
     """Resource for collection of GroupMember objects in a group"""
 
-    @cache.cached(timeout=30)
     def get(self, group):
         """Get all members of a group"""
         res = MasonBuilder()
@@ -54,11 +53,11 @@ class GroupMemberCollection(Resource):
         members = GroupMember.query.filter_by(group_id=group.id).all()
         for member in members:
             member_data = MasonBuilder(**member.serialize())
-            for name, props in build_member_controls(group.id, member.user_id).items():
+            for name, props in build_member_controls(group.uuid, member.user_id).items():
                 member_data.add_control(name, **props)
             res["members"].append(member_data)
 
-        for name, props in build_member_collection_controls(group.id).items():
+        for name, props in build_member_collection_controls(group.uuid).items():
             res.add_control(name, **props)
 
         return res, 200
@@ -93,11 +92,8 @@ class GroupMemberCollection(Resource):
         db.session.add(member)
         db.session.commit()
 
-        cache.delete(f"groups/{group.uuid}/members")
-        cache.delete(f"groups/{group.uuid}")
-
         res = MasonBuilder(**member.serialize())
-        for name, props in build_member_controls(group.id, user.id).items():
+        for name, props in build_member_controls(group.uuid, user.id).items():
             res.add_control(name, **props)
 
         return res, 201

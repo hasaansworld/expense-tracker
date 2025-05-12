@@ -28,7 +28,6 @@ def build_expense_controls(expense):
 class ExpenseCollection(Resource):
     """Resource for collection of Expense objects in a group"""
 
-    @cache.cached(timeout=30)
     def get(self, group):
         """Get all expenses in a group"""
         expenses = Expense.query.filter_by(group_id=group.id).all()
@@ -41,8 +40,8 @@ class ExpenseCollection(Resource):
                 e_doc.add_control(name, **props)
             res["expenses"].append(e_doc)
 
-        res.add_control("self", f"/groups/{group.id}/expenses/")
-        res.add_control("create", f"/groups/{group.id}/expenses/", method="POST", encoding="json", schema=Expense.get_schema())
+        res.add_control("self", f"/groups/{group.uuid}/expenses/")
+        res.add_control("create", f"/groups/{group.uuid}/expenses/", method="POST", encoding="json", schema=Expense.get_schema())
         return res, 200
 
     @require_api_key
