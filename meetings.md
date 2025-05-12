@@ -2,8 +2,9 @@
 
 ## Meeting 1.
 * **DATE:**
+* 30/01/2025
 * **ASSISTANTS:**
-
+* Mika Oja
 
 ## Minutes:
 Summary of what was discussed during the meeting:
@@ -13,10 +14,10 @@ Summary of what was discussed during the meeting:
 - **Related Work**: The related work was explained well, with a strong description quality. However, the client example provided was minimal and could be expanded.
 
 ## Action Points:
-- [ ] Revise the **API Overview** section to provide a more detailed description.
-- [ ] Update the **Main Concepts** diagram to include more detailed representations.
-- [ ] Provide more examples and clarification for **API Uses** related to the client and service distinction.
-- [ ] Expand the **Related Work** section, especially by adding more client examples.
+-  Revise the **API Overview** section to provide a more detailed description.
+-  Update the **Main Concepts** diagram to include more detailed representations.
+-  Provide more examples and clarification for **API Uses** related to the client and service distinction.
+-  Expand the **Related Work** section, especially by adding more client examples.
 
 
 
