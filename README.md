@@ -649,6 +649,11 @@ npm run dev
 
 Copy the URL shown in your terminal (usually `http://localhost:5173/`) and paste it into your browser to view the application.
 
+To run ESLint for linting the project use:
+```bash
+npm run lint
+```
+
 ## Client Structure
 Here's a breakdown of the main parts:
 
