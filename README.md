@@ -649,6 +649,56 @@ npm run dev
 
 Copy the URL shown in your terminal (usually `http://localhost:5173/`) and paste it into your browser to view the application.
 
+## Client Structure
+Here's a breakdown of the main parts:
+
+#### 📂 `public/`
+This folder contains static files like images, icons, or other assets that don't need to be processed by the app. These are served directly to the browser.
+
+#### 📂 `src/`
+The heart of the frontend code. Everything inside here is part of the actual React app.
+
+#### 📁 `components/`
+Reusable UI building blocks of the app, such as:
+- `Card.jsx` – A styled container for content.
+- `Header.jsx` – Used for the top navigation and branding.
+- `HypermediaForm.jsx` – A dynamic form, driven by schemas from hypermedia controls in API responses.
+- `Input.jsx` – A reusable input component for forms.
+- `ProtectedRoute.jsx` – A wrapper that restricts access to certain pages unless the user is authenticated.
+- `RootLayout.jsx` – The main layout wrapper that may include shared elements like headers or sidebars.
+
+#### 📁 `pages/`
+Each file in this folder represents a full page or route in the application. Examples include:
+- `Home.jsx` – The landing or dashboard page.
+- `Signup.jsx` – A page to register new users.
+- `CreateGroup.jsx`, `AddMembers.jsx`, `CreateExpense.jsx`, etc. – Pages for managing groups and expenses.
+
+#### 📄 `App.jsx`
+The main component that ties the entire app together. It usually includes the router and wraps all pages.
+
+#### 📄 `main.jsx`
+The entry point where the React app is mounted to the HTML DOM.
+
+#### 📄 `App.css`
+Global styles for the entire application.
+
+#### 📄 `hypermedia.js`
+A JavaScript utility file – likely contains logic to support `HypermediaForm.jsx`.
+
+---
+
+### 🛠 Config & Environment
+
+- `.env` / `.env.example` – Used to store environment-specific variables like API URLs.
+- `vite.config.js` – Configuration for Vite (the build tool).
+- `eslint.config.js` – Linting rules for consistent code style.
+- `index.html` – The HTML shell that React injects the app into.
+- `package.json` – Lists all dependencies and scripts to run the app.
+
+
+This structure is designed to keep the code organized and scalable as the project grows.
+
+
 ## Features
 
 - User authentication (signup only)
